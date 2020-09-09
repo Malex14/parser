@@ -107,7 +107,7 @@ fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
     ));
     lines.push("END:VEVENT".to_owned());
 
-    lines.join("\n") + "\n"
+    lines.join("\n")
 }
 
 fn calculate_event_hash(event: &SoonToBeIcsEvent) -> String {
@@ -151,7 +151,7 @@ mod tests {
 
         assert_eq!(
             result,
-            "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:cdc823d56e1d56be@calendarbot.hawhh.de\nEND:VEVENT\n"
+            "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:cdc823d56e1d56be@calendarbot.hawhh.de\nEND:VEVENT"
         );
     }
 }

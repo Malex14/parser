@@ -21,7 +21,7 @@ pub enum RemovedEvents {
     Emoji,
 }
 
-pub fn parse_removed_events(string: &str) -> Result<RemovedEvents, String> {
+fn parse_removed_events(string: &str) -> Result<RemovedEvents, String> {
     match string {
         "cancelled" => Ok(RemovedEvents::Cancelled),
         "removed" => Ok(RemovedEvents::Removed),
@@ -36,7 +36,16 @@ pub struct Userconfig {
     pub calendarfile_suffix: String,
     pub changes: Vec<Change>,
     pub events: Vec<String>,
-    pub removed_events: Option<String>, // See enum RemovedEvents
+    removed_events: Option<String>, // See enum RemovedEvents
+}
+
+impl Userconfig {
+    pub fn removed_events(&self) -> Result<RemovedEvents, String> {
+        match &self.removed_events {
+            Some(string) => parse_removed_events(&string),
+            None => Ok(RemovedEvents::Cancelled),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -54,9 +63,10 @@ pub struct Change {
 pub fn parse_change_date(raw: &str) -> Result<DateTime<FixedOffset>, String> {
     let tless = raw.replace('T', " ");
     let naive = NaiveDateTime::parse_from_str(&tless, "%Y-%m-%d %H:%M")
-        .map_err(|err| format!("parse_datetime failed {} {}", raw, err))?;
+        .map_err(|err| format!("parse_datetime failed naive {} {}", raw, err))?;
     let date_time = Berlin.from_utc_datetime(&naive);
-    let fixed_offset = DateTime::parse_from_rfc3339(&date_time.to_rfc3339()).unwrap();
+    let fixed_offset = DateTime::parse_from_rfc3339(&date_time.to_rfc3339())
+        .map_err(|err| format!("parse_datetime failed fixed_offset {} {}", raw, err))?;
     Ok(fixed_offset)
 }
 
@@ -82,6 +92,20 @@ mod tests {
         assert_eq!(test.first_name, "Peter");
 
         Ok(())
+    }
+
+    #[test]
+    fn error_on_userconfig_without_calendarfile_suffix() -> Result<(), String> {
+        let test: Result<Userconfig, serde_json::Error> =
+            serde_json::from_str(r#"{"changes": [], "events": []}"#);
+
+        match test {
+            Err(error) => {
+                assert_eq!(error.is_data(), true);
+                Ok(())
+            }
+            _ => Err("should fail".to_owned()),
+        }
     }
 
     #[test]

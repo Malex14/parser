@@ -48,8 +48,6 @@ pub fn apply_change(
     } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change_date)
     {
         let mut event = &mut events[i];
-        println!("found relevant event for change {:?} {:?}", change, event);
-
         if change.remove == Some(true) {
             match remove_events {
                 RemovedEvents::Cancelled => event.status = EventStatus::Cancelled,
