@@ -16,9 +16,9 @@ pub fn read_event(name: &str) -> Result<Vec<EventEntry>, String> {
     let filename = name.replace("/", "-");
     let path = Path::new("eventfiles").join(filename + ".json");
     let content = fs::read_to_string(path)
-        .map_err(|err| format!("failed to read event file {} {}", name, err))?;
+        .map_err(|err| format!("failed to read event file {} Error: {}", name, err))?;
     let event_entries: Vec<EventEntry> = serde_json::from_str(&content)
-        .map_err(|err| format!("failed to parse event file {} {}", name, err))?;
+        .map_err(|err| format!("failed to parse event file {} Error: {}", name, err))?;
 
     Ok(event_entries)
 }

@@ -26,10 +26,18 @@ fn parse_event(event: &EventEntry) -> Result<SoonToBeIcsEvent, String> {
         name: event.name.to_owned(),
         pretty_name: event.name.to_owned(),
         status: EventStatus::Confirmed,
-        start_time: DateTime::parse_from_rfc3339(&event.start_time)
-            .map_err(|err| format!("parse event start time failed {} {}", event.start_time, err))?,
-        end_time: DateTime::parse_from_rfc3339(&event.end_time)
-            .map_err(|err| format!("parse event end time failed {} {}", event.end_time, err))?,
+        start_time: DateTime::parse_from_rfc3339(&event.start_time).map_err(|err| {
+            format!(
+                "parse event start time failed {} Error: {}",
+                event.start_time, err
+            )
+        })?,
+        end_time: DateTime::parse_from_rfc3339(&event.end_time).map_err(|err| {
+            format!(
+                "parse event end time failed {} Error: {}",
+                event.end_time, err
+            )
+        })?,
         description: event.description.to_owned(),
         location: event.location.to_owned(),
     })
@@ -42,7 +50,7 @@ pub fn apply_change(
 ) -> Result<(), String> {
     let mut iter = events.iter();
     let change_date = userconfig::parse_change_date(&change.date)
-        .map_err(|err| format!("failed to parse change date {} {}", change.date, err))?;
+        .map_err(|err| format!("failed to parse change date {} Error: {}", change.date, err))?;
     if change.add == Some(true) {
         // TODO: do magic
     } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change_date)
@@ -68,14 +76,19 @@ pub fn apply_change(
         }
 
         if let Some(start_time) = &change.starttime {
-            let time = NaiveTime::parse_from_str(&start_time, "%H:%M")
-                .map_err(|err| format!("parse change start time failed {} {}", start_time, err))?;
+            let time = NaiveTime::parse_from_str(&start_time, "%H:%M").map_err(|err| {
+                format!(
+                    "parse change start time failed {} Error: {}",
+                    start_time, err
+                )
+            })?;
             event.start_time = change_date.date().and_time(time).unwrap();
         }
 
         if let Some(end_time) = &change.endtime {
-            let time = NaiveTime::parse_from_str(&end_time, "%H:%M")
-                .map_err(|err| format!("parse change end time failed {} {}", end_time, err))?;
+            let time = NaiveTime::parse_from_str(&end_time, "%H:%M").map_err(|err| {
+                format!("parse change end time failed {} Error: {}", end_time, err)
+            })?;
             event.end_time = change_date.date().and_time(time).unwrap();
         }
     } else {

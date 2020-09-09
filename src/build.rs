@@ -15,20 +15,20 @@ pub fn build(content: &UserconfigFile) -> Result<(), String> {
 
     let user_events = read_events(&content.config.events).map_err(|err| {
         format!(
-            "failed to read events for user {} {} {}",
+            "failed to read events for user {} {} Error: {}",
             user_id, first_name, err
         )
     })?;
     let removed_events = content.config.removed_events().map_err(|err| {
         format!(
-            "failed to parse type of removed_events for user {} {} {}",
+            "failed to parse type of removed_events for user {} {} Error: {}",
             user_id, first_name, err
         )
     })?;
     let result_events = apply_changes(&user_events, &content.config.changes, &removed_events)
         .map_err(|err| {
             format!(
-                "failed to apply changes for user {} {} {}",
+                "failed to apply changes for user {} {} Error: {}",
                 user_id, first_name, err
             )
         })?;
@@ -38,7 +38,7 @@ pub fn build(content: &UserconfigFile) -> Result<(), String> {
     let path = Path::new("calendars").join(&ics_filename);
     fs::write(path, &ics_content).map_err(|err| {
         format!(
-            "failed to write ics file content for user {} {} {}",
+            "failed to write ics file content for user {} {} Error: {}",
             user_id, first_name, err
         )
     })?;
