@@ -5,8 +5,10 @@ use crate::userconfig::UserconfigFile;
 use std::fs;
 use std::path::Path;
 
+const FOLDER: &str = "calendars";
+
 pub fn ensure_directory() -> Result<(), std::io::Error> {
-    fs::create_dir_all("calendars")
+    fs::create_dir_all(FOLDER)
 }
 
 pub fn build(content: &UserconfigFile) -> Result<(), String> {
@@ -35,7 +37,7 @@ pub fn build(content: &UserconfigFile) -> Result<(), String> {
     let ics_content = generate_ics(first_name, &result_events);
 
     let ics_filename = format!("{}-{}.ics", user_id, &content.config.calendarfile_suffix);
-    let path = Path::new("calendars").join(&ics_filename);
+    let path = Path::new(FOLDER).join(&ics_filename);
     fs::write(path, &ics_content).map_err(|err| {
         format!(
             "failed to write ics file content for user {} {} Error: {}",
