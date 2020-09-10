@@ -1,0 +1,8 @@
+.*
+*.md
+/target
+Dockerfile
+
+/calendars
+/eventfiles
+/userconfig
