@@ -27,18 +27,49 @@ fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
     let ics_filename = format!("{}-{}.ics", user_id, &content.config.calendarfile_suffix);
     let path = Path::new(FOLDER).join(&ics_filename);
 
+    let mut changetype = Changetype::Same;
+
+    let existing = get_existing_files(&format!("{}-", user_id))
+        .map_err(|err| format!("failed to read existing calendars of user {}", err))?;
+
+    match existing.len() {
+        1 => {
+            if existing[0] != ics_filename {
+                let existing_path = Path::new(FOLDER).join(&existing[0]);
+
+                fs::rename(&existing_path, &path)
+                    .map_err(|err| format!("failed to rename calendars of user {}", err))?;
+
+                changetype = Changetype::Moved;
+            }
+        }
+        0 => {}
+        _ => {
+            for filename in existing {
+                let existing_path = Path::new(FOLDER).join(filename);
+                fs::remove_file(existing_path).map_err(|err| {
+                    format!(
+                        "failed to remove superfluous calendars of user {} {} Error: {}",
+                        user_id, first_name, err
+                    )
+                })?;
+                changetype = Changetype::Removed;
+            }
+        }
+    }
+
     if content.config.events.is_empty() {
-        let changetype = if path.exists() {
+        if path.exists() {
             fs::remove_file(&path).map_err(|err| {
                 format!(
                     "failed to remove calendar with now 0 events {} {} Error: {}",
                     user_id, first_name, err
                 )
             })?;
-            Changetype::Removed
+            changetype = Changetype::Removed;
         } else {
-            Changetype::Skipped
-        };
+            changetype = Changetype::Skipped;
+        }
 
         return Ok(Buildresult {
             filename: ics_filename,
@@ -66,17 +97,15 @@ fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
     result_events.sort_by_cached_key(|event| event.start_time);
     let ics_content = generate_ics(first_name, &result_events);
 
-    let changetype = if let Ok(current_content) = fs::read_to_string(&path) {
-        if ics_content == current_content {
-            Changetype::Same
-        } else {
-            Changetype::Changed
+    if let Ok(current_content) = fs::read_to_string(&path) {
+        if ics_content != current_content {
+            changetype = Changetype::Changed;
         }
     } else {
-        Changetype::Added
+        changetype = Changetype::Added;
     };
 
-    if changetype != Changetype::Same {
+    if changetype == Changetype::Changed || changetype == Changetype::Added {
         fs::write(&path, &ics_content).map_err(|err| {
             format!(
                 "failed to write ics file content for user {} {} Error: {}",
@@ -96,20 +125,13 @@ fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
 
 pub fn build_all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, String> {
     let mut changestati: Vec<Changestatus> = Vec::new();
-    let mut superfluous = get_existing_files()
-        .map_err(|err| format!("failed to read calendars dir for cleanup {}", err))?;
+    let mut created_files: Vec<String> = Vec::new();
 
     for content in list {
         match build_interal(&content) {
             Ok(filechange) => {
-                if let Some(index) = superfluous
-                    .iter()
-                    .position(|x| x.as_ref() == filechange.filename)
-                {
-                    superfluous.remove(index);
-                }
-
                 changestati.push(filechange.changestatus);
+                created_files.push(filechange.filename);
             }
             Err(error) => println!(
                 "build for {} {} failed. Error: {}",
@@ -118,7 +140,14 @@ pub fn build_all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus
         }
     }
 
-    for filename in &superfluous {
+    let existing = get_existing_files("")
+        .map_err(|err| format!("failed to read calendars dir for cleanup {}", err))?;
+
+    for filename in &existing {
+        if created_files.contains(filename) {
+            continue;
+        }
+
         let path = Path::new(FOLDER).join(filename);
         fs::remove_file(path).map_err(|err| {
             format!(
@@ -136,7 +165,7 @@ pub fn build_all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus
     Ok(changestati)
 }
 
-fn get_existing_files() -> Result<Vec<String>, std::io::Error> {
+fn get_existing_files(starts_with: &str) -> Result<Vec<String>, std::io::Error> {
     let mut list: Vec<String> = Vec::new();
     for maybe_entry in fs::read_dir(FOLDER)? {
         let filename = maybe_entry?
@@ -144,7 +173,9 @@ fn get_existing_files() -> Result<Vec<String>, std::io::Error> {
             .into_string()
             .expect("filename contains something that can not be read easily with rust");
 
-        list.push(filename.to_owned());
+        if filename.starts_with(starts_with) {
+            list.push(filename.to_owned());
+        }
     }
 
     Ok(list)

@@ -4,6 +4,7 @@ use std::collections::HashMap;
 pub enum Changetype {
     Added,
     Changed,
+    Moved,
     Removed,
     Same,
     Skipped,
@@ -15,8 +16,8 @@ pub struct Changestatus {
     pub changetype: Changetype,
 }
 
-pub const SHOW_ALL: [&str; 5] = ["added", "changed", "removed", "same", "skipped"];
-pub const SHOW_INTERESTING: [&str; 3] = ["added", "changed", "removed"];
+pub const SHOW_ALL: [&str; 6] = ["added", "changed", "moved", "removed", "same", "skipped"];
+pub const SHOW_INTERESTING: [&str; 4] = ["added", "changed", "moved", "removed"];
 
 pub fn create_change_summary(changes: &[Changestatus], to_be_shown: &[&str]) -> String {
     let mut map: HashMap<&str, Vec<String>> = HashMap::new();
@@ -25,6 +26,7 @@ pub fn create_change_summary(changes: &[Changestatus], to_be_shown: &[&str]) -> 
         let key = match change.changetype {
             Changetype::Added => "added",
             Changetype::Changed => "changed",
+            Changetype::Moved => "moved",
             Changetype::Removed => "removed",
             Changetype::Same => "same",
             Changetype::Skipped => "skipped",
@@ -64,6 +66,10 @@ mod tests {
             changetype: Changetype::Changed,
         });
         vec.push(Changestatus {
+            name: String::from("M"),
+            changetype: Changetype::Moved,
+        });
+        vec.push(Changestatus {
             name: String::from("R"),
             changetype: Changetype::Removed,
         });
@@ -92,6 +98,7 @@ mod tests {
             result,
             r#"added   (  1): ["A"]
 changed (  1): ["C"]
+moved   (  1): ["M"]
 removed (  1): ["R"]
 same    (  1): ["Sa"]
 skipped (  1): ["Sk"]"#
@@ -105,6 +112,7 @@ skipped (  1): ["Sk"]"#
             result,
             r#"added   (  1): ["A"]
 changed (  1): ["C"]
+moved   (  1): ["M"]
 removed (  1): ["R"]"#
         );
     }
