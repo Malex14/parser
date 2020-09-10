@@ -38,7 +38,4 @@ RUN apk --no-cache add bash git tzdata
 
 COPY --from=builder /home/rust/target/x86_64-unknown-linux-musl/release/parser /usr/bin/
 
-HEALTHCHECK --interval=5m \
-    CMD bash -c '[[ $(find . -maxdepth 1 -name ".last-successful-run" -mmin "-250" -print | wc -l) == "1" ]]'
-
 ENTRYPOINT ["parser"]
