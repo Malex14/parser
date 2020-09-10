@@ -2,7 +2,7 @@ use crate::userconfig::UserconfigFile;
 use std::fs;
 use std::path::Path;
 
-const FOLDER: &str = "userconfig";
+pub const FOLDER: &str = "userconfig";
 
 pub fn load_specific(filename: &str) -> Result<UserconfigFile, String> {
     let path = Path::new(FOLDER).join(filename);

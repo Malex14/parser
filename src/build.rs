@@ -11,7 +11,7 @@ pub struct Buildresult {
     pub filename: String,
 }
 
-const FOLDER: &str = "calendars";
+pub const FOLDER: &str = "calendars";
 
 pub fn ensure_directory() -> Result<(), std::io::Error> {
     fs::create_dir_all(FOLDER)
