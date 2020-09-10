@@ -49,12 +49,7 @@ fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         });
     }
 
-    let user_events = read_events(&content.config.events).map_err(|err| {
-        format!(
-            "failed to read events for user {} {} Error: {}",
-            user_id, first_name, err
-        )
-    })?;
+    let user_events = read_events(&content.config.events);
     let removed_events = content.config.removed_events().map_err(|err| {
         format!(
             "failed to parse type of removed_events for user {} {} Error: {}",

@@ -23,14 +23,16 @@ pub fn read_event(name: &str) -> Result<Vec<EventEntry>, String> {
     Ok(event_entries)
 }
 
-pub fn read_events(event_names: &[String]) -> Result<Vec<EventEntry>, String> {
+pub fn read_events(event_names: &[String]) -> Vec<EventEntry> {
     let mut result: Vec<EventEntry> = Vec::new();
     for name in event_names {
-        let mut events = read_event(name)?;
-        result.append(&mut events);
+        match read_event(name) {
+            Ok(mut events) => result.append(&mut events),
+            Err(err) => println!("skip event {:32} {}", name, err)
+        }
     }
 
-    Ok(result)
+    result
 }
 
 #[cfg(test)]
