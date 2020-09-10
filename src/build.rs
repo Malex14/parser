@@ -56,13 +56,14 @@ fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
             user_id, first_name, err
         )
     })?;
-    let result_events = apply_changes(&user_events, &content.config.changes, &removed_events)
+    let mut result_events = apply_changes(&user_events, &content.config.changes, &removed_events)
         .map_err(|err| {
             format!(
                 "failed to apply changes for user {} {} Error: {}",
                 user_id, first_name, err
             )
         })?;
+    result_events.sort_by_cached_key(|event| event.start_time);
     let ics_content = generate_ics(first_name, &result_events);
 
     let changetype = if let Ok(current_content) = fs::read_to_string(&path) {
