@@ -64,7 +64,7 @@ pub fn generate_ics(calendarname: &str, events: &[SoonToBeIcsEvent]) -> String {
 
     result += ICS_SUFFIX;
 
-    result
+    result.replace("\n", "\r\n")
 }
 
 fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
