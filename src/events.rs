@@ -15,10 +15,9 @@ pub struct EventEntry {
 pub fn read_event(name: &str) -> Result<Vec<EventEntry>, String> {
     let filename = name.replace("/", "-");
     let path = Path::new("eventfiles").join(filename + ".json");
-    let content = fs::read_to_string(path)
-        .map_err(|err| format!("failed to read event file {} Error: {}", name, err))?;
-    let event_entries: Vec<EventEntry> = serde_json::from_str(&content)
-        .map_err(|err| format!("failed to parse event file {} Error: {}", name, err))?;
+    let content = fs::read_to_string(path).map_err(|err| format!("failed to read: {}", err))?;
+    let event_entries: Vec<EventEntry> =
+        serde_json::from_str(&content).map_err(|err| format!("failed to parse: {}", err))?;
 
     Ok(event_entries)
 }
@@ -28,7 +27,7 @@ pub fn read_events(event_names: &[String]) -> Vec<EventEntry> {
     for name in event_names {
         match read_event(name) {
             Ok(mut events) => result.append(&mut events),
-            Err(err) => println!("skip event {:32} {}", name, err)
+            Err(err) => println!("skip event {:32} {}", name, err),
         }
     }
 

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(PartialEq, Hash)]
+#[derive(PartialEq, Debug, Hash)]
 pub enum Changetype {
     Added,
     Changed,
@@ -9,6 +9,7 @@ pub enum Changetype {
     Skipped,
 }
 
+#[derive(Debug)]
 pub struct Changestatus {
     pub name: String,
     pub changetype: Changetype,

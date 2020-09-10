@@ -6,10 +6,9 @@ const FOLDER: &str = "userconfig";
 
 pub fn load_specific(filename: &str) -> Result<UserconfigFile, String> {
     let path = Path::new(FOLDER).join(filename);
-    let content = fs::read_to_string(path)
-        .map_err(|err| format!("failed to read event file {} Error: {}", filename, err))?;
-    let parsed: UserconfigFile = serde_json::from_str(&content)
-        .map_err(|err| format!("failed to parse event file {} Error: {}", filename, err))?;
+    let content = fs::read_to_string(path).map_err(|err| format!("failed to read: {}", err))?;
+    let parsed: UserconfigFile =
+        serde_json::from_str(&content).map_err(|err| format!("failed to parse: {}", err))?;
 
     Ok(parsed)
 }
@@ -23,7 +22,7 @@ pub fn load_all() -> Result<Vec<UserconfigFile>, String> {
     for filename in existing_files {
         match load_specific(&filename) {
             Ok(content) => successful.push(content),
-            Err(err) => println!("skip userconfig {}. Error: {}", filename, err),
+            Err(err) => println!("skip userconfig {:>16}: {}", filename, err),
         }
     }
 
