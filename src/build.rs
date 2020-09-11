@@ -58,7 +58,8 @@ fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         }
     }
 
-    if content.config.events.is_empty() {
+    let user_events = read_events(&content.config.events);
+    if user_events.is_empty() {
         if path.exists() {
             fs::remove_file(&path).map_err(|err| {
                 format!(
@@ -80,7 +81,6 @@ fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         });
     }
 
-    let user_events = read_events(&content.config.events);
     let removed_events = content.config.removed_events().map_err(|err| {
         format!(
             "failed to parse type of removed_events for user {} {} Error: {}",
