@@ -31,8 +31,7 @@ fn main() {
     let userconfig_watcher = Watchcat::new(userconfigs::FOLDER).unwrap();
 
     loop {
-        let mut event_changes: Vec<String> = Vec::new();
-        event_changes.append(&mut event_watcher.get_changed_filenames());
+        let mut event_changes = event_watcher.get_changed_filenames();
         if !event_changes.is_empty() {
             println!("eventfile change detected… ");
             sleep(Duration::from_secs(15));
