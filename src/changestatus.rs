@@ -42,7 +42,8 @@ pub fn create_change_summary(changes: &[Changestatus], to_be_shown: &[&str]) -> 
 
     let mut lines: Vec<String> = Vec::new();
     for key in to_be_shown {
-        if let Some(val) = map.get(key) {
+        if let Some(val) = map.get_mut(key) {
+            val.sort_by_key(|o| o.to_lowercase());
             lines.push(format!("{:7} ({:3}): {:?}", key, val.len(), val));
         }
     }
