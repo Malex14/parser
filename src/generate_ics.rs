@@ -77,7 +77,7 @@ fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
         "STATUS:{}",
         match event.status {
             EventStatus::Confirmed => "CONFIRMED",
-            _ => "CANCELLED",
+            EventStatus::Cancelled => "CANCELLED",
         }
         .to_owned()
     ));
