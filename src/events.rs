@@ -14,7 +14,7 @@ pub struct EventEntry {
 
 pub const FOLDER: &str = "eventfiles";
 
-pub fn read_event(name: &str) -> Result<Vec<EventEntry>, String> {
+fn read_one(name: &str) -> Result<Vec<EventEntry>, String> {
     let filename = name.replace("/", "-");
     let path = Path::new(FOLDER).join(filename + ".json");
     let content = fs::read_to_string(path).map_err(|err| format!("failed to read: {}", err))?;
@@ -24,10 +24,10 @@ pub fn read_event(name: &str) -> Result<Vec<EventEntry>, String> {
     Ok(event_entries)
 }
 
-pub fn read_events(event_names: &[String]) -> Vec<EventEntry> {
+pub fn read(event_names: &[String]) -> Vec<EventEntry> {
     let mut result: Vec<EventEntry> = Vec::new();
     for name in event_names {
-        match read_event(name) {
+        match read_one(name) {
             Ok(mut events) => result.append(&mut events),
             Err(err) => println!("skip event {:32} {}", name, err),
         }

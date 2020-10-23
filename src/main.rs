@@ -1,4 +1,3 @@
-use crate::build::build_all_remove_rest;
 use crate::changestatus::create_change_summary;
 use crate::changestatus::Changestatus;
 use crate::watchcat::Watchcat;
@@ -20,7 +19,7 @@ fn main() {
     println!("Begin build all configs…");
 
     let all = userconfigs::load_all().expect("failed to load all userconfigs");
-    let changes = build_all_remove_rest(&all).expect("failed to build all initial userconfigs");
+    let changes = build::all_remove_rest(&all).expect("failed to build all initial userconfigs");
     println!(
         "{}",
         create_change_summary(&changes, &changestatus::SHOW_ALL)
@@ -59,7 +58,7 @@ fn main() {
 
 fn do_all() -> Result<String, String> {
     let all = userconfigs::load_all()?;
-    let changes = build_all_remove_rest(&all)?;
+    let changes = build::all_remove_rest(&all)?;
     Ok(create_change_summary(
         &changes,
         &changestatus::SHOW_INTERESTING,
@@ -68,5 +67,5 @@ fn do_all() -> Result<String, String> {
 
 fn do_specific(userconfig_filename: &str) -> Result<Changestatus, String> {
     let config = userconfigs::load_specific(&userconfig_filename)?;
-    build::build(&config)
+    build::one(&config)
 }

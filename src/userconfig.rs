@@ -2,6 +2,7 @@ use chrono::{DateTime, FixedOffset, NaiveDateTime, TimeZone};
 use chrono_tz::Europe::Berlin;
 use serde::{Deserialize, Serialize};
 
+#[allow(clippy::module_name_repetitions)]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UserconfigFile {
     pub chat: Chat,

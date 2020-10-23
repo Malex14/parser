@@ -1,6 +1,6 @@
 use crate::apply_changes::apply_changes;
 use crate::changestatus::{Changestatus, Changetype};
-use crate::events::read_events;
+use crate::events;
 use crate::generate_ics::generate_ics;
 use crate::userconfig::UserconfigFile;
 use std::fs;
@@ -17,11 +17,11 @@ pub fn ensure_directory() -> Result<(), std::io::Error> {
     fs::create_dir_all(FOLDER)
 }
 
-pub fn build(content: &UserconfigFile) -> Result<Changestatus, String> {
-    Ok(build_interal(&content)?.changestatus)
+pub fn one(content: &UserconfigFile) -> Result<Changestatus, String> {
+    Ok(one_interal(&content)?.changestatus)
 }
 
-fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
+fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
     let user_id = content.chat.id;
     let first_name = &content.chat.first_name;
     let ics_filename = format!("{}-{}.ics", user_id, &content.config.calendarfile_suffix);
@@ -58,7 +58,7 @@ fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         }
     }
 
-    let user_events = read_events(&content.config.events);
+    let user_events = events::read(&content.config.events);
     if user_events.is_empty() {
         if path.exists() {
             fs::remove_file(&path).map_err(|err| {
@@ -123,12 +123,12 @@ fn build_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
     })
 }
 
-pub fn build_all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, String> {
+pub fn all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, String> {
     let mut changestati: Vec<Changestatus> = Vec::new();
     let mut created_files: Vec<String> = Vec::new();
 
     for content in list {
-        match build_interal(&content) {
+        match one_interal(&content) {
             Ok(filechange) => {
                 changestati.push(filechange.changestatus);
                 created_files.push(filechange.filename);
