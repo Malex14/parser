@@ -70,98 +70,91 @@ pub fn parse_change_date(raw: &str) -> Result<DateTime<FixedOffset>, String> {
     Ok(fixed_offset)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use serde_json;
+#[test]
+fn can_parse_change_date_from_utc_to_local() {
+    let actual = parse_change_date("2020-07-01T06:30").unwrap();
+    let string = actual.to_rfc3339();
+    assert_eq!(string, "2020-07-01T08:30:00+02:00");
+}
 
-    #[test]
-    fn can_parse_change_date_from_utc_to_local() {
-        let actual = parse_change_date("2020-07-01T06:30").unwrap();
-        let string = actual.to_rfc3339();
-        assert_eq!(string, "2020-07-01T08:30:00+02:00");
-    }
+#[test]
+fn can_deserialize_chat() -> Result<(), serde_json::Error> {
+    let test: Chat = serde_json::from_str(
+        r#"{"id": 133766642, "is_bot": false, "first_name": "Peter", "last_name": "Parker", "username": "Spiderman", "language_code": "en"}"#,
+    )?;
 
-    #[test]
-    fn can_deserialize_chat() -> Result<(), serde_json::Error> {
-        let test: Chat = serde_json::from_str(
-            r#"{"id": 133766642, "is_bot": false, "first_name": "Peter", "last_name": "Parker", "username": "Spiderman", "language_code": "en"}"#,
-        )?;
+    assert_eq!(test.id, 133766642);
+    assert_eq!(test.first_name, "Peter");
 
-        assert_eq!(test.id, 133766642);
-        assert_eq!(test.first_name, "Peter");
+    Ok(())
+}
 
-        Ok(())
-    }
+#[test]
+fn error_on_userconfig_without_calendarfile_suffix() -> Result<(), String> {
+    let test: Result<Userconfig, serde_json::Error> =
+        serde_json::from_str(r#"{"changes": [], "events": []}"#);
 
-    #[test]
-    fn error_on_userconfig_without_calendarfile_suffix() -> Result<(), String> {
-        let test: Result<Userconfig, serde_json::Error> =
-            serde_json::from_str(r#"{"changes": [], "events": []}"#);
-
-        match test {
-            Err(error) => {
-                assert_eq!(error.is_data(), true);
-                Ok(())
-            }
-            _ => Err("should fail".to_owned()),
+    match test {
+        Err(error) => {
+            assert_eq!(error.is_data(), true);
+            Ok(())
         }
+        _ => Err("should fail".to_owned()),
     }
+}
 
-    #[test]
-    fn can_deserialize_minimal_userconfig() -> Result<(), serde_json::Error> {
-        let test: Userconfig = serde_json::from_str(
-            r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": []}"#,
-        )?;
+#[test]
+fn can_deserialize_minimal_userconfig() -> Result<(), serde_json::Error> {
+    let test: Userconfig =
+        serde_json::from_str(r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": []}"#)?;
 
-        assert_eq!(test.calendarfile_suffix, "123qwe");
-        assert_eq!(test.changes.len(), 0);
-        assert_eq!(test.events.len(), 0);
-        assert_eq!(test.removed_events, None);
+    assert_eq!(test.calendarfile_suffix, "123qwe");
+    assert_eq!(test.changes.len(), 0);
+    assert_eq!(test.events.len(), 0);
+    assert_eq!(test.removed_events, None);
 
-        Ok(())
-    }
+    Ok(())
+}
 
-    #[test]
-    fn can_deserialize_userconfig_with_events() -> Result<(), serde_json::Error> {
-        let test: Userconfig = serde_json::from_str(
-            r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": ["BTI1-TI", "BTI5-VS"]}"#,
-        )?;
+#[test]
+fn can_deserialize_userconfig_with_events() -> Result<(), serde_json::Error> {
+    let test: Userconfig = serde_json::from_str(
+        r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": ["BTI1-TI", "BTI5-VS"]}"#,
+    )?;
 
-        assert_eq!(test.calendarfile_suffix, "123qwe");
-        assert_eq!(test.changes.len(), 0);
-        assert_eq!(test.events, ["BTI1-TI", "BTI5-VS"]);
-        assert_eq!(test.removed_events, None);
+    assert_eq!(test.calendarfile_suffix, "123qwe");
+    assert_eq!(test.changes.len(), 0);
+    assert_eq!(test.events, ["BTI1-TI", "BTI5-VS"]);
+    assert_eq!(test.removed_events, None);
 
-        Ok(())
-    }
+    Ok(())
+}
 
-    #[test]
-    fn can_deserialize_minimal_change() -> Result<(), serde_json::Error> {
-        let test: Change = serde_json::from_str(r#"{"name": "Tree", "date": "2020-12-20T22:04"}"#)?;
-        assert_eq!(test.add, None);
-        assert_eq!(test.name, "Tree");
-        assert_eq!(test.date, "2020-12-20T22:04");
-        assert_eq!(test.remove, None);
-        assert_eq!(test.namesuffix, None);
-        assert_eq!(test.starttime, None);
-        assert_eq!(test.endtime, None);
-        assert_eq!(test.room, None);
+#[test]
+fn can_deserialize_minimal_change() -> Result<(), serde_json::Error> {
+    let test: Change = serde_json::from_str(r#"{"name": "Tree", "date": "2020-12-20T22:04"}"#)?;
+    assert_eq!(test.add, None);
+    assert_eq!(test.name, "Tree");
+    assert_eq!(test.date, "2020-12-20T22:04");
+    assert_eq!(test.remove, None);
+    assert_eq!(test.namesuffix, None);
+    assert_eq!(test.starttime, None);
+    assert_eq!(test.endtime, None);
+    assert_eq!(test.room, None);
 
-        Ok(())
-    }
+    Ok(())
+}
 
-    #[test]
-    fn removed_events_can_be_parsed() {
-        assert_eq!(
-            parse_removed_events("cancelled"),
-            Ok(RemovedEvents::Cancelled)
-        );
-        assert_eq!(parse_removed_events("removed"), Ok(RemovedEvents::Removed));
-        assert_eq!(parse_removed_events("emoji"), Ok(RemovedEvents::Emoji));
-        assert_eq!(
-            parse_removed_events("wha"),
-            Err("could not parse removed events wha".to_owned())
-        );
-    }
+#[test]
+fn removed_events_can_be_parsed() {
+    assert_eq!(
+        parse_removed_events("cancelled"),
+        Ok(RemovedEvents::Cancelled)
+    );
+    assert_eq!(parse_removed_events("removed"), Ok(RemovedEvents::Removed));
+    assert_eq!(parse_removed_events("emoji"), Ok(RemovedEvents::Emoji));
+    assert_eq!(
+        parse_removed_events("wha"),
+        Err("could not parse removed events wha".to_owned())
+    );
 }

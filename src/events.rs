@@ -36,23 +36,17 @@ pub fn read_events(event_names: &[String]) -> Vec<EventEntry> {
     result
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use serde_json;
+#[test]
+fn can_deserialize_event_entry() -> Result<(), serde_json::Error> {
+    let test: EventEntry = serde_json::from_str(
+        r#"{"Name": "BTI1-TI", "Location": "1060", "Description": "Dozent: HTM", "StartTime": "08:30", "EndTime": "11:30"}"#,
+    )?;
 
-    #[test]
-    fn can_deserialize_event_entry() -> Result<(), serde_json::Error> {
-        let test: EventEntry = serde_json::from_str(
-            r#"{"Name": "BTI1-TI", "Location": "1060", "Description": "Dozent: HTM", "StartTime": "08:30", "EndTime": "11:30"}"#,
-        )?;
+    assert_eq!(test.name, "BTI1-TI");
+    assert_eq!(test.location, "1060");
+    assert_eq!(test.description, "Dozent: HTM");
+    assert_eq!(test.start_time, "08:30");
+    assert_eq!(test.end_time, "11:30");
 
-        assert_eq!(test.name, "BTI1-TI");
-        assert_eq!(test.location, "1060");
-        assert_eq!(test.description, "Dozent: HTM");
-        assert_eq!(test.start_time, "08:30");
-        assert_eq!(test.end_time, "11:30");
-
-        Ok(())
-    }
+    Ok(())
 }

@@ -124,34 +124,29 @@ fn date_to_ics_date(date: &DateTime<FixedOffset>) -> String {
     date.format("%Y%m%d %H%M%S").to_string().replace(" ", "T")
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[test]
+fn parse_ics_date() {
+    let date = DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap();
+    let result = date_to_ics_date(&date);
+    assert_eq!(result, "20200822T083000")
+}
 
-    #[test]
-    fn parse_ics_date() {
-        let date = DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap();
-        let result = date_to_ics_date(&date);
-        assert_eq!(result, "20200822T083000")
-    }
+#[test]
+fn create_minimal_event_vevent() {
+    let event = SoonToBeIcsEvent {
+        name: "BTI5-VS".to_owned(),
+        pretty_name: "BTI5-VS".to_owned(),
+        status: EventStatus::Cancelled,
+        start_time: DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap(),
+        end_time: DateTime::parse_from_rfc3339("2020-08-22T11:30:00+02:00").unwrap(),
+        description: "".to_owned(),
+        location: "".to_owned(),
+    };
 
-    #[test]
-    fn create_minimal_event_vevent() {
-        let event = SoonToBeIcsEvent {
-            name: "BTI5-VS".to_owned(),
-            pretty_name: "BTI5-VS".to_owned(),
-            status: EventStatus::Cancelled,
-            start_time: DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap(),
-            end_time: DateTime::parse_from_rfc3339("2020-08-22T11:30:00+02:00").unwrap(),
-            description: "".to_owned(),
-            location: "".to_owned(),
-        };
+    let result = event_as_ics_vevent_string(&event);
 
-        let result = event_as_ics_vevent_string(&event);
-
-        assert_eq!(
-            result,
-            "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:cdc823d56e1d56be@calendarbot.hawhh.de\nEND:VEVENT"
-        );
-    }
+    assert_eq!(
+        result,
+        "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:cdc823d56e1d56be@calendarbot.hawhh.de\nEND:VEVENT"
+    );
 }

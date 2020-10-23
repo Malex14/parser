@@ -52,69 +52,65 @@ pub fn create_change_summary(changes: &[Changestatus], to_be_shown: &[&str]) -> 
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+fn generate_every_type_once() -> Vec<Changestatus> {
+    let mut vec: Vec<Changestatus> = Vec::new();
 
-    fn generate_every_type_once() -> Vec<Changestatus> {
-        let mut vec: Vec<Changestatus> = Vec::new();
+    vec.push(Changestatus {
+        name: String::from("A"),
+        changetype: Changetype::Added,
+    });
+    vec.push(Changestatus {
+        name: String::from("C"),
+        changetype: Changetype::Changed,
+    });
+    vec.push(Changestatus {
+        name: String::from("M"),
+        changetype: Changetype::Moved,
+    });
+    vec.push(Changestatus {
+        name: String::from("R"),
+        changetype: Changetype::Removed,
+    });
+    vec.push(Changestatus {
+        name: String::from("Sa"),
+        changetype: Changetype::Same,
+    });
+    vec.push(Changestatus {
+        name: String::from("Sk"),
+        changetype: Changetype::Skipped,
+    });
 
-        vec.push(Changestatus {
-            name: String::from("A"),
-            changetype: Changetype::Added,
-        });
-        vec.push(Changestatus {
-            name: String::from("C"),
-            changetype: Changetype::Changed,
-        });
-        vec.push(Changestatus {
-            name: String::from("M"),
-            changetype: Changetype::Moved,
-        });
-        vec.push(Changestatus {
-            name: String::from("R"),
-            changetype: Changetype::Removed,
-        });
-        vec.push(Changestatus {
-            name: String::from("Sa"),
-            changetype: Changetype::Same,
-        });
-        vec.push(Changestatus {
-            name: String::from("Sk"),
-            changetype: Changetype::Skipped,
-        });
+    vec
+}
 
-        vec
-    }
+#[test]
+fn summary_without_changes_is_empty() {
+    let result = create_change_summary(&[], &SHOW_ALL);
+    assert_eq!(result, "");
+}
 
-    #[test]
-    fn summary_without_changes_is_empty() {
-        let result = create_change_summary(&[], &SHOW_ALL);
-        assert_eq!(result, "");
-    }
-
-    #[test]
-    fn summary_shows_every_type_once() {
-        let result = create_change_summary(&generate_every_type_once(), &SHOW_ALL);
-        assert_eq!(
-            result,
-            r#"added   (  1): ["A"]
+#[test]
+fn summary_shows_every_type_once() {
+    let result = create_change_summary(&generate_every_type_once(), &SHOW_ALL);
+    assert_eq!(
+        result,
+        r#"added   (  1): ["A"]
 changed (  1): ["C"]
 moved   (  1): ["M"]
 removed (  1): ["R"]
 same    (  1): ["Sa"]
 skipped (  1): ["Sk"]"#
-        );
-    }
+    );
+}
 
-    #[test]
-    fn summary_shows_interesting_types_once() {
-        let result = create_change_summary(&generate_every_type_once(), &SHOW_INTERESTING);
-        assert_eq!(
-            result,
-            r#"added   (  1): ["A"]
+#[test]
+fn summary_shows_interesting_types_once() {
+    let result = create_change_summary(&generate_every_type_once(), &SHOW_INTERESTING);
+    assert_eq!(
+        result,
+        r#"added   (  1): ["A"]
 changed (  1): ["C"]
 moved   (  1): ["M"]
 removed (  1): ["R"]"#
-        );
-    }
+    );
 }

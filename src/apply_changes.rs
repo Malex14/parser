@@ -101,174 +101,170 @@ pub fn apply_change(
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
+fn generate_events() -> Vec<SoonToBeIcsEvent> {
+    let mut result: Vec<SoonToBeIcsEvent> = Vec::new();
+    result.push(SoonToBeIcsEvent {
+        name: "BTI5-VSP/01".to_owned(),
+        pretty_name: "BTI5-VSP/01".to_owned(),
+        status: EventStatus::Confirmed,
+        start_time: DateTime::parse_from_rfc3339("2020-04-02T08:15:00+02:00").unwrap(),
+        end_time: DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
+        description: "".to_owned(),
+        location: "".to_owned(),
+    });
+    result.push(SoonToBeIcsEvent {
+        name: "BTI5-VSP/01".to_owned(),
+        pretty_name: "BTI5-VSP/01".to_owned(),
+        status: EventStatus::Confirmed,
+        start_time: DateTime::parse_from_rfc3339("2020-05-14T08:15:00+02:00").unwrap(),
+        end_time: DateTime::parse_from_rfc3339("2020-05-14T11:15:00+02:00").unwrap(),
+        description: "".to_owned(),
+        location: "".to_owned(),
+    });
+    result
+}
 
-    fn generate_events() -> Vec<SoonToBeIcsEvent> {
-        let mut result: Vec<SoonToBeIcsEvent> = Vec::new();
-        result.push(SoonToBeIcsEvent {
-            name: "BTI5-VSP/01".to_owned(),
-            pretty_name: "BTI5-VSP/01".to_owned(),
-            status: EventStatus::Confirmed,
-            start_time: DateTime::parse_from_rfc3339("2020-04-02T08:15:00+02:00").unwrap(),
-            end_time: DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
-            description: "".to_owned(),
-            location: "".to_owned(),
-        });
-        result.push(SoonToBeIcsEvent {
-            name: "BTI5-VSP/01".to_owned(),
-            pretty_name: "BTI5-VSP/01".to_owned(),
-            status: EventStatus::Confirmed,
-            start_time: DateTime::parse_from_rfc3339("2020-05-14T08:15:00+02:00").unwrap(),
-            end_time: DateTime::parse_from_rfc3339("2020-05-14T11:15:00+02:00").unwrap(),
-            description: "".to_owned(),
-            location: "".to_owned(),
-        });
-        result
-    }
+#[test]
+fn non_existing_event_of_change_is_skipped() {
+    let mut events = generate_events();
+    let change = Change {
+        name: "BTI5-VS".to_owned(),
+        date: "2020-05-15T13:37".to_owned(),
+        add: None,
+        starttime: None,
+        endtime: None,
+        namesuffix: None,
+        room: None,
+        remove: Some(true),
+    };
+    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    assert_eq!(events.len(), 2);
 
-    #[test]
-    fn non_existing_event_of_change_is_skipped() {
-        let mut events = generate_events();
-        let change = Change {
-            name: "BTI5-VS".to_owned(),
-            date: "2020-05-15T13:37".to_owned(),
-            add: None,
-            starttime: None,
-            endtime: None,
-            namesuffix: None,
-            room: None,
-            remove: Some(true),
-        };
-        apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
-        assert_eq!(events.len(), 2);
+    let expected = generate_events();
+    assert_eq!(events[0], expected[0]);
+    assert_eq!(events[1], expected[1]);
+}
 
-        let expected = generate_events();
-        assert_eq!(events[0], expected[0]);
-        assert_eq!(events[1], expected[1]);
-    }
+#[test]
+fn remove_event_is_removed_completly() {
+    let mut events = generate_events();
+    let change = Change {
+        name: "BTI5-VSP/01".to_owned(),
+        date: "2020-05-14T06:15".to_owned(),
+        add: None,
+        starttime: None,
+        endtime: None,
+        namesuffix: None,
+        room: None,
+        remove: Some(true),
+    };
+    apply_change(&mut events, &change, &RemovedEvents::Removed).unwrap();
+    assert_eq!(events.len(), 1);
+}
 
-    #[test]
-    fn remove_event_is_removed_completly() {
-        let mut events = generate_events();
-        let change = Change {
-            name: "BTI5-VSP/01".to_owned(),
-            date: "2020-05-14T06:15".to_owned(),
-            add: None,
-            starttime: None,
-            endtime: None,
-            namesuffix: None,
-            room: None,
-            remove: Some(true),
-        };
-        apply_change(&mut events, &change, &RemovedEvents::Removed).unwrap();
-        assert_eq!(events.len(), 1);
-    }
+#[test]
+fn remove_event_gets_marked_as_cancelled() {
+    let mut events = generate_events();
+    let change = Change {
+        name: "BTI5-VSP/01".to_owned(),
+        date: "2020-05-14T06:15".to_owned(),
+        add: None,
+        starttime: None,
+        endtime: None,
+        namesuffix: None,
+        room: None,
+        remove: Some(true),
+    };
+    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    assert_eq!(events.len(), 2);
+    assert_eq!(events[1].status, EventStatus::Cancelled);
+}
 
-    #[test]
-    fn remove_event_gets_marked_as_cancelled() {
-        let mut events = generate_events();
-        let change = Change {
-            name: "BTI5-VSP/01".to_owned(),
-            date: "2020-05-14T06:15".to_owned(),
-            add: None,
-            starttime: None,
-            endtime: None,
-            namesuffix: None,
-            room: None,
-            remove: Some(true),
-        };
-        apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
-        assert_eq!(events.len(), 2);
-        assert_eq!(events[1].status, EventStatus::Cancelled);
-    }
+#[test]
+fn remove_event_gets_emoji_prefix() {
+    let mut events = generate_events();
+    let change = Change {
+        name: "BTI5-VSP/01".to_owned(),
+        date: "2020-05-14T06:15".to_owned(),
+        add: None,
+        starttime: None,
+        endtime: None,
+        namesuffix: None,
+        room: None,
+        remove: Some(true),
+    };
+    apply_change(&mut events, &change, &RemovedEvents::Emoji).unwrap();
+    assert_eq!(events.len(), 2);
+    assert_eq!(events[1].pretty_name, "🚫 BTI5-VSP/01");
+}
 
-    #[test]
-    fn remove_event_gets_emoji_prefix() {
-        let mut events = generate_events();
-        let change = Change {
-            name: "BTI5-VSP/01".to_owned(),
-            date: "2020-05-14T06:15".to_owned(),
-            add: None,
-            starttime: None,
-            endtime: None,
-            namesuffix: None,
-            room: None,
-            remove: Some(true),
-        };
-        apply_change(&mut events, &change, &RemovedEvents::Emoji).unwrap();
-        assert_eq!(events.len(), 2);
-        assert_eq!(events[1].pretty_name, "🚫 BTI5-VSP/01");
-    }
+#[test]
+fn namesuffix_is_added() {
+    let mut events = generate_events();
+    let change = Change {
+        name: "BTI5-VSP/01".to_owned(),
+        date: "2020-05-14T06:15".to_owned(),
+        add: None,
+        starttime: None,
+        endtime: None,
+        namesuffix: Some("whatever".to_owned()),
+        room: None,
+        remove: None,
+    };
+    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    assert_eq!(events[1].pretty_name, "BTI5-VSP/01 whatever");
+}
 
-    #[test]
-    fn namesuffix_is_added() {
-        let mut events = generate_events();
-        let change = Change {
-            name: "BTI5-VSP/01".to_owned(),
-            date: "2020-05-14T06:15".to_owned(),
-            add: None,
-            starttime: None,
-            endtime: None,
-            namesuffix: Some("whatever".to_owned()),
-            room: None,
-            remove: None,
-        };
-        apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
-        assert_eq!(events[1].pretty_name, "BTI5-VSP/01 whatever");
-    }
+#[test]
+fn room_is_overwritten() {
+    let mut events = generate_events();
+    let change = Change {
+        name: "BTI5-VSP/01".to_owned(),
+        date: "2020-05-14T06:15".to_owned(),
+        add: None,
+        starttime: None,
+        endtime: None,
+        namesuffix: None,
+        room: Some("whereever".to_owned()),
+        remove: None,
+    };
+    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    assert_eq!(events[1].location, "whereever");
+}
 
-    #[test]
-    fn room_is_overwritten() {
-        let mut events = generate_events();
-        let change = Change {
-            name: "BTI5-VSP/01".to_owned(),
-            date: "2020-05-14T06:15".to_owned(),
-            add: None,
-            starttime: None,
-            endtime: None,
-            namesuffix: None,
-            room: Some("whereever".to_owned()),
-            remove: None,
-        };
-        apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
-        assert_eq!(events[1].location, "whereever");
-    }
+#[test]
+fn starttime_changed() {
+    let mut events = generate_events();
+    let change = Change {
+        name: "BTI5-VSP/01".to_owned(),
+        date: "2020-05-14T06:15".to_owned(),
+        add: None,
+        starttime: Some("08:30".to_owned()),
+        endtime: None,
+        namesuffix: None,
+        room: None,
+        remove: None,
+    };
+    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    assert_eq!(
+        events[1].start_time.to_rfc3339(),
+        "2020-05-14T08:30:00+02:00"
+    );
+}
 
-    #[test]
-    fn starttime_changed() {
-        let mut events = generate_events();
-        let change = Change {
-            name: "BTI5-VSP/01".to_owned(),
-            date: "2020-05-14T06:15".to_owned(),
-            add: None,
-            starttime: Some("08:30".to_owned()),
-            endtime: None,
-            namesuffix: None,
-            room: None,
-            remove: None,
-        };
-        apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
-        assert_eq!(
-            events[1].start_time.to_rfc3339(),
-            "2020-05-14T08:30:00+02:00"
-        );
-    }
-
-    #[test]
-    fn endtime_changed() {
-        let mut events = generate_events();
-        let change = Change {
-            name: "BTI5-VSP/01".to_owned(),
-            date: "2020-05-14T06:15".to_owned(),
-            add: None,
-            starttime: None,
-            endtime: Some("08:30".to_owned()),
-            namesuffix: None,
-            room: None,
-            remove: None,
-        };
-        apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
-        assert_eq!(events[1].end_time.to_rfc3339(), "2020-05-14T08:30:00+02:00");
-    }
+#[test]
+fn endtime_changed() {
+    let mut events = generate_events();
+    let change = Change {
+        name: "BTI5-VSP/01".to_owned(),
+        date: "2020-05-14T06:15".to_owned(),
+        add: None,
+        starttime: None,
+        endtime: Some("08:30".to_owned()),
+        namesuffix: None,
+        room: None,
+        remove: None,
+    };
+    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    assert_eq!(events[1].end_time.to_rfc3339(), "2020-05-14T08:30:00+02:00");
 }
