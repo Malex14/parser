@@ -14,6 +14,7 @@ mod userconfig;
 mod userconfigs;
 mod watchcat;
 
+#[allow(clippy::non_ascii_literal)]
 fn main() {
     build::ensure_directory().unwrap();
     println!("Begin build all configs…");

@@ -57,6 +57,7 @@ pub fn apply_change(
     {
         let mut event = &mut events[i];
         if change.remove == Some(true) {
+            #[allow(clippy::non_ascii_literal)]
             match remove_events {
                 RemovedEvents::Cancelled => event.status = EventStatus::Cancelled,
                 RemovedEvents::Emoji => event.pretty_name = format!("🚫 {}", event.pretty_name),
