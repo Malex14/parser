@@ -81,27 +81,22 @@ fn can_parse_change_date_from_utc_to_local() {
 #[test]
 fn can_deserialize_chat() -> Result<(), serde_json::Error> {
     let test: Chat = serde_json::from_str(
-        r#"{"id": 133766642, "is_bot": false, "first_name": "Peter", "last_name": "Parker", "username": "Spiderman", "language_code": "en"}"#,
+        r#"{"id": 1337666, "is_bot": false, "first_name": "Peter", "last_name": "Parker", "username": "Spiderman", "language_code": "en"}"#,
     )?;
 
-    assert_eq!(test.id, 133766642);
+    assert_eq!(test.id, 1_337_666);
     assert_eq!(test.first_name, "Peter");
 
     Ok(())
 }
 
 #[test]
-fn error_on_userconfig_without_calendarfile_suffix() -> Result<(), String> {
+fn error_on_userconfig_without_calendarfile_suffix() {
     let test: Result<Userconfig, serde_json::Error> =
         serde_json::from_str(r#"{"changes": [], "events": []}"#);
 
-    match test {
-        Err(error) => {
-            assert_eq!(error.is_data(), true);
-            Ok(())
-        }
-        _ => Err("should fail".to_owned()),
-    }
+    let error = test.expect_err("parsing should fail");
+    assert_eq!(error.is_data(), true);
 }
 
 #[test]
