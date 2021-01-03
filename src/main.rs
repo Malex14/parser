@@ -13,10 +13,9 @@ mod userconfig;
 mod userconfigs;
 mod watchcat;
 
-#[allow(clippy::non_ascii_literal)]
 fn main() {
     build::ensure_directory().unwrap();
-    println!("Begin build all configs…");
+    println!("Begin build all configs...");
 
     let all = userconfigs::load_all().expect("failed to load all userconfigs");
     let changes = build::all_remove_rest(&all).expect("failed to build all initial userconfigs");
@@ -25,7 +24,7 @@ fn main() {
         create_change_summary(&changes, &changestatus::SHOW_ALL)
     );
 
-    println!("Finished building all configs. Engage watchcats…\n");
+    println!("Finished building all configs. Engage watchcats...\n");
 
     let event_watcher = Watchcat::new(events::FOLDER).unwrap();
     let userconfig_watcher = Watchcat::new(userconfigs::FOLDER).unwrap();
@@ -33,7 +32,7 @@ fn main() {
     loop {
         let mut event_changes = event_watcher.get_changed_filenames();
         if !event_changes.is_empty() {
-            println!("eventfile change detected… ");
+            println!("eventfile change detected... ");
             sleep(Duration::from_secs(15));
             event_changes.append(&mut event_watcher.get_changed_filenames());
             println!("changed ({:3}): {:?}", event_changes.len(), event_changes);
@@ -45,7 +44,7 @@ fn main() {
         }
 
         for filename in userconfig_watcher.get_changed_filenames() {
-            println!("userconfig changed {:>16}… ", filename);
+            println!("userconfig changed {:>16}... ", filename);
             match do_specific(&filename) {
                 Ok(change) => println!("{:?} {}", change.changetype, change.name),
                 Err(err) => println!("{}", err),
