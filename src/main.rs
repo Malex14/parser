@@ -1,3 +1,5 @@
+#![forbid(unsafe_code)]
+
 use crate::changestatus::create_change_summary;
 use crate::changestatus::Changestatus;
 use crate::watchcat::Watchcat;
