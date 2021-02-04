@@ -22,13 +22,11 @@ RUN strip target/x86_64-unknown-linux-musl/release/parser
 
 
 # Start building the final image
-FROM alpine
+FROM scratch
 VOLUME /app/calendars
 VOLUME /app/eventfiles
 VOLUME /app/userconfig
 WORKDIR /app
-
-RUN apk --no-cache add bash git
 
 COPY --from=builder /home/rust/target/x86_64-unknown-linux-musl/release/parser /usr/bin/
 
