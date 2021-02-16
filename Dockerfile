@@ -1,4 +1,4 @@
-FROM ekidd/rust-musl-builder as builder
+FROM docker.io/ekidd/rust-musl-builder as builder
 
 WORKDIR /home/rust
 
