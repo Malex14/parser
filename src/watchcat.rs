@@ -12,7 +12,7 @@ pub struct Watchcat {
 }
 
 impl Watchcat {
-    pub fn new(folder: &str) -> Result<Watchcat, String> {
+    pub fn new(folder: &str) -> Result<Self, String> {
         let (tx, rx) = channel();
 
         // Create a watcher object, delivering debounced events.
@@ -23,7 +23,7 @@ impl Watchcat {
             .watch(folder, RecursiveMode::NonRecursive)
             .map_err(|err| format!("failed to watch {} Error: {}", folder, err))?;
 
-        Ok(Watchcat { watcher, rx })
+        Ok(Self { watcher, rx })
     }
 
     pub fn get_changed_filenames(&self) -> Vec<String> {
