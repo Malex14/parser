@@ -35,8 +35,12 @@ fn parse_removed_events(string: &str) -> Result<RemovedEvents, String> {
 #[serde(rename_all = "camelCase")]
 pub struct Userconfig {
     pub calendarfile_suffix: String,
+
+    #[serde(default)]
     pub changes: Vec<Change>,
+
     pub events: Vec<String>,
+
     removed_events: Option<String>, // See enum RemovedEvents
 }
 
