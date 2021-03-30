@@ -81,14 +81,12 @@ fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         });
     }
 
-    let removed_events = content.config.removed_events().map_err(|err| {
-        format!(
-            "failed to parse type of removed_events for user {} {} Error: {}",
-            user_id, first_name, err
-        )
-    })?;
-    let mut result_events = apply_changes(&user_events, &content.config.changes, &removed_events)
-        .map_err(|err| {
+    let mut result_events = apply_changes(
+        &user_events,
+        &content.config.changes,
+        &content.config.removed_events,
+    )
+    .map_err(|err| {
         format!(
             "failed to apply changes for user {} {} Error: {}",
             user_id, first_name, err

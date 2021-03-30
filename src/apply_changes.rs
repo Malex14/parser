@@ -9,7 +9,7 @@ use chrono::{DateTime, NaiveTime};
 pub fn apply_changes(
     events: &[EventEntry],
     changes: &[Change],
-    remove_events: &RemovedEvents,
+    removed_events: &RemovedEvents,
 ) -> Result<Vec<SoonToBeIcsEvent>, String> {
     let mut result: Vec<SoonToBeIcsEvent> = Vec::new();
     for event in events {
@@ -17,7 +17,7 @@ pub fn apply_changes(
     }
 
     for change in changes {
-        apply_change(&mut result, change, &remove_events)?;
+        apply_change(&mut result, change, &removed_events)?;
     }
 
     Ok(result)
@@ -48,7 +48,7 @@ fn parse_event(event: &EventEntry) -> Result<SoonToBeIcsEvent, String> {
 pub fn apply_change(
     events: &mut Vec<SoonToBeIcsEvent>,
     change: &Change,
-    remove_events: &RemovedEvents,
+    removed_events: &RemovedEvents,
 ) -> Result<(), String> {
     let mut iter = events.iter();
     let change_date = userconfig::parse_change_date(&change.date)
@@ -59,7 +59,7 @@ pub fn apply_change(
     {
         let mut event = &mut events[i];
         if change.remove == Some(true) {
-            match remove_events {
+            match removed_events {
                 RemovedEvents::Cancelled => event.status = EventStatus::Cancelled,
                 RemovedEvents::Emoji => event.pretty_name = format!("🚫 {}", event.pretty_name),
                 RemovedEvents::Removed => {

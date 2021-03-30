@@ -15,19 +15,17 @@ pub struct Chat {
     pub first_name: String,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum RemovedEvents {
     Cancelled,
     Removed,
     Emoji,
 }
 
-fn parse_removed_events(string: &str) -> Result<RemovedEvents, String> {
-    match string {
-        "cancelled" => Ok(RemovedEvents::Cancelled),
-        "removed" => Ok(RemovedEvents::Removed),
-        "emoji" => Ok(RemovedEvents::Emoji),
-        _ => Err(format!("could not parse removed events {}", string)),
+impl Default for RemovedEvents {
+    fn default() -> Self {
+        Self::Cancelled
     }
 }
 
@@ -41,16 +39,8 @@ pub struct Userconfig {
 
     pub events: Vec<String>,
 
-    removed_events: Option<String>, // See enum RemovedEvents
-}
-
-impl Userconfig {
-    pub fn removed_events(&self) -> Result<RemovedEvents, String> {
-        match &self.removed_events {
-            Some(string) => parse_removed_events(&string),
-            None => Ok(RemovedEvents::Cancelled),
-        }
-    }
+    #[serde(default)]
+    pub removed_events: RemovedEvents,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -111,7 +101,7 @@ fn can_deserialize_minimal_userconfig() -> Result<(), serde_json::Error> {
     assert_eq!(test.calendarfile_suffix, "123qwe");
     assert_eq!(test.changes.len(), 0);
     assert_eq!(test.events.len(), 0);
-    assert_eq!(test.removed_events, None);
+    assert_eq!(test.removed_events, RemovedEvents::Cancelled);
 
     Ok(())
 }
@@ -119,13 +109,30 @@ fn can_deserialize_minimal_userconfig() -> Result<(), serde_json::Error> {
 #[test]
 fn can_deserialize_userconfig_with_events() -> Result<(), serde_json::Error> {
     let test: Userconfig = serde_json::from_str(
-        r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": ["BTI1-TI", "BTI5-VS"]}"#,
+        r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": ["BTI1-TI", "BTI5-VS"], "removedEvents": "removed"}"#,
     )?;
 
     assert_eq!(test.calendarfile_suffix, "123qwe");
     assert_eq!(test.changes.len(), 0);
     assert_eq!(test.events, ["BTI1-TI", "BTI5-VS"]);
-    assert_eq!(test.removed_events, None);
+    assert_eq!(test.removed_events, RemovedEvents::Removed);
+
+    Ok(())
+}
+
+#[test]
+fn can_serialize_minimal_userconfig() -> Result<(), serde_json::Error> {
+    let test = Userconfig {
+        calendarfile_suffix: "123qwe".to_owned(),
+        changes: vec![],
+        events: vec!["BTI1-TI".to_owned(), "BTI5-VS".to_owned()],
+        removed_events: RemovedEvents::Removed,
+    };
+
+    assert_eq!(
+        serde_json::to_string(&test)?,
+        r#"{"calendarfileSuffix":"123qwe","changes":[],"events":["BTI1-TI","BTI5-VS"],"removedEvents":"removed"}"#
+    );
 
     Ok(())
 }
@@ -143,18 +150,4 @@ fn can_deserialize_minimal_change() -> Result<(), serde_json::Error> {
     assert_eq!(test.room, None);
 
     Ok(())
-}
-
-#[test]
-fn removed_events_can_be_parsed() {
-    assert_eq!(
-        parse_removed_events("cancelled"),
-        Ok(RemovedEvents::Cancelled)
-    );
-    assert_eq!(parse_removed_events("removed"), Ok(RemovedEvents::Removed));
-    assert_eq!(parse_removed_events("emoji"), Ok(RemovedEvents::Emoji));
-    assert_eq!(
-        parse_removed_events("wha"),
-        Err("could not parse removed events wha".to_owned())
-    );
 }
