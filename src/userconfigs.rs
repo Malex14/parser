@@ -37,6 +37,7 @@ fn get_existing_files() -> Result<Vec<String>, std::io::Error> {
             .into_string()
             .expect("filename contains something that can not be read easily with rust");
 
+        #[allow(clippy::case_sensitive_file_extension_comparisons)]
         if filename.ends_with(".json") {
             list.push(filename.to_owned());
         }
