@@ -53,34 +53,32 @@ pub fn create_change_summary(changes: &[Changestatus], to_be_shown: &[&str]) -> 
 
 #[cfg(test)]
 fn generate_every_type_once() -> Vec<Changestatus> {
-    let mut vec: Vec<Changestatus> = Vec::new();
-
-    vec.push(Changestatus {
-        name: String::from("A"),
-        changetype: Changetype::Added,
-    });
-    vec.push(Changestatus {
-        name: String::from("C"),
-        changetype: Changetype::Changed,
-    });
-    vec.push(Changestatus {
-        name: String::from("M"),
-        changetype: Changetype::Moved,
-    });
-    vec.push(Changestatus {
-        name: String::from("R"),
-        changetype: Changetype::Removed,
-    });
-    vec.push(Changestatus {
-        name: String::from("Sa"),
-        changetype: Changetype::Same,
-    });
-    vec.push(Changestatus {
-        name: String::from("Sk"),
-        changetype: Changetype::Skipped,
-    });
-
-    vec
+    vec![
+        Changestatus {
+            name: String::from("A"),
+            changetype: Changetype::Added,
+        },
+        Changestatus {
+            name: String::from("C"),
+            changetype: Changetype::Changed,
+        },
+        Changestatus {
+            name: String::from("M"),
+            changetype: Changetype::Moved,
+        },
+        Changestatus {
+            name: String::from("R"),
+            changetype: Changetype::Removed,
+        },
+        Changestatus {
+            name: String::from("Sa"),
+            changetype: Changetype::Same,
+        },
+        Changestatus {
+            name: String::from("Sk"),
+            changetype: Changetype::Skipped,
+        },
+    ]
 }
 
 #[test]

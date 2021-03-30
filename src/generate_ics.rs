@@ -68,7 +68,7 @@ pub fn generate_ics(calendarname: &str, events: &[SoonToBeIcsEvent]) -> String {
 }
 
 fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
-    let mut lines: Vec<String> = Vec::new();
+    let mut lines: Vec<String> = Vec::with_capacity(10);
 
     lines.push("BEGIN:VEVENT".to_owned());
     lines.push("TRANSP:OPAQUE".to_owned());

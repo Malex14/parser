@@ -103,26 +103,26 @@ pub fn apply_change(
 
 #[cfg(test)]
 fn generate_events() -> Vec<SoonToBeIcsEvent> {
-    let mut result: Vec<SoonToBeIcsEvent> = Vec::new();
-    result.push(SoonToBeIcsEvent {
-        name: "BTI5-VSP/01".to_owned(),
-        pretty_name: "BTI5-VSP/01".to_owned(),
-        status: EventStatus::Confirmed,
-        start_time: DateTime::parse_from_rfc3339("2020-04-02T08:15:00+02:00").unwrap(),
-        end_time: DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
-        description: "".to_owned(),
-        location: "".to_owned(),
-    });
-    result.push(SoonToBeIcsEvent {
-        name: "BTI5-VSP/01".to_owned(),
-        pretty_name: "BTI5-VSP/01".to_owned(),
-        status: EventStatus::Confirmed,
-        start_time: DateTime::parse_from_rfc3339("2020-05-14T08:15:00+02:00").unwrap(),
-        end_time: DateTime::parse_from_rfc3339("2020-05-14T11:15:00+02:00").unwrap(),
-        description: "".to_owned(),
-        location: "".to_owned(),
-    });
-    result
+    vec![
+        SoonToBeIcsEvent {
+            name: "BTI5-VSP/01".to_owned(),
+            pretty_name: "BTI5-VSP/01".to_owned(),
+            status: EventStatus::Confirmed,
+            start_time: DateTime::parse_from_rfc3339("2020-04-02T08:15:00+02:00").unwrap(),
+            end_time: DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
+            description: "".to_owned(),
+            location: "".to_owned(),
+        },
+        SoonToBeIcsEvent {
+            name: "BTI5-VSP/01".to_owned(),
+            pretty_name: "BTI5-VSP/01".to_owned(),
+            status: EventStatus::Confirmed,
+            start_time: DateTime::parse_from_rfc3339("2020-05-14T08:15:00+02:00").unwrap(),
+            end_time: DateTime::parse_from_rfc3339("2020-05-14T11:15:00+02:00").unwrap(),
+            description: "".to_owned(),
+            location: "".to_owned(),
+        },
+    ]
 }
 
 #[test]
