@@ -25,7 +25,7 @@ fn read_one(name: &str) -> Result<Vec<EventEntry>, String> {
     Ok(event_entries)
 }
 
-pub fn read(event_names: &[String]) -> Vec<EventEntry> {
+pub fn read(event_names: &[&String]) -> Vec<EventEntry> {
     let mut result: Vec<EventEntry> = Vec::new();
     for name in event_names {
         match read_one(name) {

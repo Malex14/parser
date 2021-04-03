@@ -58,7 +58,8 @@ fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         }
     }
 
-    let user_events = events::read(&content.config.events);
+    let user_event_list = content.config.events.keys().collect::<Vec<_>>();
+    let user_events = events::read(&user_event_list);
     if user_events.is_empty() {
         if path.exists() {
             fs::remove_file(&path).map_err(|err| {

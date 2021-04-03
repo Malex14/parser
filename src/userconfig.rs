@@ -1,5 +1,8 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, FixedOffset, NaiveDateTime, TimeZone};
 use chrono_tz::Europe::Berlin;
+use serde::de::Visitor;
 use serde::Deserialize;
 
 #[allow(clippy::module_name_repetitions)]
@@ -29,6 +32,10 @@ impl Default for RemovedEvents {
     }
 }
 
+#[derive(Deserialize, Debug, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct EventDetails {}
+
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Userconfig {
@@ -37,7 +44,8 @@ pub struct Userconfig {
     #[serde(default)]
     pub changes: Vec<Change>,
 
-    pub events: Vec<String>,
+    #[serde(deserialize_with = "deserialize_events")]
+    pub events: HashMap<String, EventDetails>,
 
     #[serde(default)]
     pub removed_events: RemovedEvents,
@@ -53,6 +61,47 @@ pub struct Change {
     pub starttime: Option<String>,
     pub endtime: Option<String>,
     pub room: Option<String>,
+}
+
+fn deserialize_events<'de, D>(deserializer: D) -> Result<HashMap<String, EventDetails>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    struct EventArrayOrMap;
+    impl<'de> Visitor<'de> for EventArrayOrMap {
+        type Value = HashMap<String, EventDetails>;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter
+                .write_str("a string array or a map with string keys and event details as values")
+        }
+
+        fn visit_seq<A>(self, mut seq: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::SeqAccess<'de>,
+        {
+            let mut result = HashMap::new();
+            while let Some(key) = seq.next_element::<String>()? {
+                result.insert(key, EventDetails::default());
+            }
+
+            Ok(result)
+        }
+
+        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::MapAccess<'de>,
+        {
+            let mut result = HashMap::new();
+            while let Some((key, value)) = map.next_entry::<String, EventDetails>()? {
+                result.insert(key, value);
+            }
+
+            Ok(result)
+        }
+    }
+
+    deserializer.deserialize_any(EventArrayOrMap)
 }
 
 pub fn parse_change_date(raw: &str) -> Result<DateTime<FixedOffset>, String> {
@@ -96,7 +145,7 @@ fn error_on_userconfig_without_calendarfile_suffix() {
 #[test]
 fn can_deserialize_minimal_userconfig() -> Result<(), serde_json::Error> {
     let test: Userconfig =
-        serde_json::from_str(r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": []}"#)?;
+        serde_json::from_str(r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": {}}"#)?;
 
     assert_eq!(test.calendarfile_suffix, "123qwe");
     assert_eq!(test.changes.len(), 0);
@@ -107,19 +156,38 @@ fn can_deserialize_minimal_userconfig() -> Result<(), serde_json::Error> {
 }
 
 #[test]
-fn can_deserialize_userconfig_with_events() -> Result<(), serde_json::Error> {
+fn can_deserialize_userconfig_with_event_array() -> Result<(), serde_json::Error> {
     let test: Userconfig = serde_json::from_str(
         r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": ["BTI1-TI", "BTI5-VS"], "removedEvents": "removed"}"#,
     )?;
 
     assert_eq!(test.calendarfile_suffix, "123qwe");
     assert_eq!(test.changes.len(), 0);
-    assert_eq!(test.events, ["BTI1-TI", "BTI5-VS"]);
     assert_eq!(test.removed_events, RemovedEvents::Removed);
+
+    let mut events = test.events.keys().collect::<Vec<_>>();
+    events.sort();
+    assert_eq!(events, ["BTI1-TI", "BTI5-VS"]);
 
     Ok(())
 }
 
+#[test]
+fn can_deserialize_userconfig_with_event_map() -> Result<(), serde_json::Error> {
+    let test: Userconfig = serde_json::from_str(
+        r#"{"calendarfileSuffix": "123qwe", "changes": [], "events": {"BTI1-TI": {}, "BTI5-VS": {}}, "removedEvents": "removed"}"#,
+    )?;
+
+    assert_eq!(test.calendarfile_suffix, "123qwe");
+    assert_eq!(test.changes.len(), 0);
+    assert_eq!(test.removed_events, RemovedEvents::Removed);
+
+    let mut events = test.events.keys().collect::<Vec<_>>();
+    events.sort();
+    assert_eq!(events, ["BTI1-TI", "BTI5-VS"]);
+
+    Ok(())
+}
 
 #[test]
 fn can_deserialize_minimal_change() -> Result<(), serde_json::Error> {
