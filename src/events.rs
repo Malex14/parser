@@ -1,7 +1,11 @@
+use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 
+use chrono::DateTime;
 use serde::Deserialize;
+
+use crate::generate_ics::{EventStatus, SoonToBeIcsEvent};
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
@@ -15,7 +19,7 @@ pub struct EventEntry {
 
 pub const FOLDER: &str = "eventfiles";
 
-fn read_one(name: &str) -> Result<Vec<EventEntry>, String> {
+pub fn read(name: &str) -> Result<Vec<EventEntry>, String> {
     let filename = name.replace("/", "-");
     let path = Path::new(FOLDER).join(filename + ".json");
     let content = fs::read_to_string(path).map_err(|err| format!("failed to read: {}", err))?;
@@ -25,16 +29,30 @@ fn read_one(name: &str) -> Result<Vec<EventEntry>, String> {
     Ok(event_entries)
 }
 
-pub fn read(event_names: &[&String]) -> Vec<EventEntry> {
-    let mut result: Vec<EventEntry> = Vec::new();
-    for name in event_names {
-        match read_one(name) {
-            Ok(mut events) => result.append(&mut events),
-            Err(err) => println!("skip event {:32} {}", name, err),
-        }
-    }
+impl TryFrom<EventEntry> for SoonToBeIcsEvent {
+    type Error = String;
 
-    result
+    fn try_from(event: EventEntry) -> Result<Self, Self::Error> {
+        Ok(SoonToBeIcsEvent {
+            name: event.name.to_owned(),
+            pretty_name: event.name.to_owned(),
+            status: EventStatus::Confirmed,
+            start_time: DateTime::parse_from_rfc3339(&event.start_time).map_err(|err| {
+                format!(
+                    "parse event start time failed {} Error: {}",
+                    event.start_time, err
+                )
+            })?,
+            end_time: DateTime::parse_from_rfc3339(&event.end_time).map_err(|err| {
+                format!(
+                    "parse event end time failed {} Error: {}",
+                    event.end_time, err
+                )
+            })?,
+            description: event.description.to_owned(),
+            location: event.location.to_owned(),
+        })
+    }
 }
 
 #[test]

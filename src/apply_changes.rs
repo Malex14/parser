@@ -1,51 +1,22 @@
 #![allow(clippy::non_ascii_literal)]
 
-use crate::events::EventEntry;
 use crate::generate_ics::{EventStatus, SoonToBeIcsEvent};
-use crate::userconfig;
-use crate::userconfig::{Change, RemovedEvents};
-use chrono::{DateTime, NaiveTime};
+use crate::userconfig::{self, Change, RemovedEvents};
+use chrono::NaiveTime;
 
 pub fn apply_changes(
-    events: &[EventEntry],
+    events: &mut Vec<SoonToBeIcsEvent>,
     changes: &[Change],
     removed_events: &RemovedEvents,
-) -> Result<Vec<SoonToBeIcsEvent>, String> {
-    let mut result: Vec<SoonToBeIcsEvent> = Vec::new();
-    for event in events {
-        result.push(parse_event(&event)?)
-    }
-
+) -> Result<(), String> {
     for change in changes {
-        apply_change(&mut result, change, &removed_events)?;
+        apply_change(events, change, &removed_events)?;
     }
 
-    Ok(result)
+    Ok(())
 }
 
-fn parse_event(event: &EventEntry) -> Result<SoonToBeIcsEvent, String> {
-    Ok(SoonToBeIcsEvent {
-        name: event.name.to_owned(),
-        pretty_name: event.name.to_owned(),
-        status: EventStatus::Confirmed,
-        start_time: DateTime::parse_from_rfc3339(&event.start_time).map_err(|err| {
-            format!(
-                "parse event start time failed {} Error: {}",
-                event.start_time, err
-            )
-        })?,
-        end_time: DateTime::parse_from_rfc3339(&event.end_time).map_err(|err| {
-            format!(
-                "parse event end time failed {} Error: {}",
-                event.end_time, err
-            )
-        })?,
-        description: event.description.to_owned(),
-        location: event.location.to_owned(),
-    })
-}
-
-pub fn apply_change(
+fn apply_change(
     events: &mut Vec<SoonToBeIcsEvent>,
     change: &Change,
     removed_events: &RemovedEvents,
@@ -108,8 +79,8 @@ fn generate_events() -> Vec<SoonToBeIcsEvent> {
             name: "BTI5-VSP/01".to_owned(),
             pretty_name: "BTI5-VSP/01".to_owned(),
             status: EventStatus::Confirmed,
-            start_time: DateTime::parse_from_rfc3339("2020-04-02T08:15:00+02:00").unwrap(),
-            end_time: DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
+            start_time: chrono::DateTime::parse_from_rfc3339("2020-04-02T08:15:00+02:00").unwrap(),
+            end_time: chrono::DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
             description: "".to_owned(),
             location: "".to_owned(),
         },
@@ -117,8 +88,8 @@ fn generate_events() -> Vec<SoonToBeIcsEvent> {
             name: "BTI5-VSP/01".to_owned(),
             pretty_name: "BTI5-VSP/01".to_owned(),
             status: EventStatus::Confirmed,
-            start_time: DateTime::parse_from_rfc3339("2020-05-14T08:15:00+02:00").unwrap(),
-            end_time: DateTime::parse_from_rfc3339("2020-05-14T11:15:00+02:00").unwrap(),
+            start_time: chrono::DateTime::parse_from_rfc3339("2020-05-14T08:15:00+02:00").unwrap(),
+            end_time: chrono::DateTime::parse_from_rfc3339("2020-05-14T11:15:00+02:00").unwrap(),
             description: "".to_owned(),
             location: "".to_owned(),
         },

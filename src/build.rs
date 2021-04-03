@@ -1,11 +1,13 @@
+use std::convert::TryInto;
+use std::fs;
+use std::path::Path;
+
 use crate::apply_changes::apply_changes;
 use crate::apply_details::apply_details;
 use crate::changestatus::{Changestatus, Changetype};
 use crate::events;
-use crate::generate_ics::generate_ics;
+use crate::generate_ics::{generate_ics, SoonToBeIcsEvent};
 use crate::userconfig::UserconfigFile;
-use std::fs;
-use std::path::Path;
 
 pub struct Buildresult {
     pub changestatus: Changestatus,
@@ -59,8 +61,14 @@ fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         }
     }
 
-    let user_event_list = content.config.events.keys().collect::<Vec<_>>();
-    let user_events = events::read(&user_event_list);
+    let mut user_events = Vec::new();
+    for name in content.config.events.keys() {
+        match load_and_parse_events(name) {
+            Ok(mut events) => user_events.append(&mut events),
+            Err(err) => println!("skip event {:32} {}", name, err),
+        }
+    }
+
     if user_events.is_empty() {
         if path.exists() {
             fs::remove_file(&path).map_err(|err| {
@@ -83,8 +91,8 @@ fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         });
     }
 
-    let mut result_events = apply_changes(
-        &user_events,
+    apply_changes(
+        &mut user_events,
         &content.config.changes,
         &content.config.removed_events,
     )
@@ -95,13 +103,13 @@ fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         )
     })?;
 
-    for mut event in &mut result_events {
+    for mut event in &mut user_events {
         let details = content.config.events.get(&event.name).unwrap();
         apply_details(&mut event, details);
     }
 
-    result_events.sort_by_cached_key(|event| event.start_time);
-    let ics_content = generate_ics(first_name, &result_events);
+    user_events.sort_by_cached_key(|event| event.start_time);
+    let ics_content = generate_ics(first_name, &user_events);
 
     if let Ok(current_content) = fs::read_to_string(&path) {
         if ics_content != current_content {
@@ -127,6 +135,15 @@ fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
             changetype,
         },
     })
+}
+
+fn load_and_parse_events(name: &str) -> Result<Vec<SoonToBeIcsEvent>, String> {
+    let mut result = Vec::new();
+    for event in events::read(name)? {
+        result.push(event.try_into()?);
+    }
+
+    Ok(result)
 }
 
 pub fn all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, String> {
