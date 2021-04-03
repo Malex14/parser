@@ -1,8 +1,9 @@
-use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 
-#[derive(Serialize, Deserialize, Debug)]
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "PascalCase")]
 pub struct EventEntry {
     pub name: String,

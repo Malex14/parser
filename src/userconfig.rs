@@ -1,21 +1,21 @@
 use chrono::{DateTime, FixedOffset, NaiveDateTime, TimeZone};
 use chrono_tz::Europe::Berlin;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
 #[allow(clippy::module_name_repetitions)]
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct UserconfigFile {
     pub chat: Chat,
     pub config: Userconfig,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Chat {
     pub id: i64,
     pub first_name: String,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Deserialize, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum RemovedEvents {
     Cancelled,
@@ -29,7 +29,7 @@ impl Default for RemovedEvents {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct Userconfig {
     pub calendarfile_suffix: String,
@@ -43,7 +43,7 @@ pub struct Userconfig {
     pub removed_events: RemovedEvents,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Deserialize, Debug)]
 pub struct Change {
     pub add: Option<bool>,
     pub name: String,
@@ -120,22 +120,6 @@ fn can_deserialize_userconfig_with_events() -> Result<(), serde_json::Error> {
     Ok(())
 }
 
-#[test]
-fn can_serialize_minimal_userconfig() -> Result<(), serde_json::Error> {
-    let test = Userconfig {
-        calendarfile_suffix: "123qwe".to_owned(),
-        changes: vec![],
-        events: vec!["BTI1-TI".to_owned(), "BTI5-VS".to_owned()],
-        removed_events: RemovedEvents::Removed,
-    };
-
-    assert_eq!(
-        serde_json::to_string(&test)?,
-        r#"{"calendarfileSuffix":"123qwe","changes":[],"events":["BTI1-TI","BTI5-VS"],"removedEvents":"removed"}"#
-    );
-
-    Ok(())
-}
 
 #[test]
 fn can_deserialize_minimal_change() -> Result<(), serde_json::Error> {
