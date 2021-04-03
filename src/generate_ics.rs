@@ -82,7 +82,10 @@ fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
         .to_owned()
     ));
 
-    lines.push(format!("SUMMARY:{}", event.pretty_name));
+    lines.push(format!(
+        "SUMMARY:{}",
+        string_to_ical_escaped_text(&event.pretty_name)
+    ));
     lines.push(format!(
         "DTSTART;TZID=Europe/Berlin:{}",
         date_to_ics_date(&event.start_time)
@@ -93,11 +96,17 @@ fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
     ));
 
     if !event.location.is_empty() {
-        lines.push(format!("LOCATION:{}", event.location.replace(",", "\\,")));
+        lines.push(format!(
+            "LOCATION:{}",
+            string_to_ical_escaped_text(&event.location)
+        ));
     }
 
     if !event.description.is_empty() {
-        lines.push(format!("DESCRIPTION:{}", event.description));
+        lines.push(format!(
+            "DESCRIPTION:{}",
+            string_to_ical_escaped_text(&event.description)
+        ));
     }
 
     lines.push("URL;VALUE=URI:https://telegram.me/HAWHHCalendarBot".to_owned());
@@ -108,6 +117,14 @@ fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
     lines.push("END:VEVENT".to_owned());
 
     lines.join("\n")
+}
+
+/// escape according to <https://www.kanzaki.com/docs/ical/text.html>
+fn string_to_ical_escaped_text(text: &str) -> String {
+    text.replace("\\", "\\\\")
+        .replace(",", "\\,")
+        .replace(";", "\\;")
+        .replace("\n", "\\n")
 }
 
 fn calculate_event_hash(event: &SoonToBeIcsEvent) -> String {
