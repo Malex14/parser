@@ -34,7 +34,9 @@ impl Default for RemovedEvents {
 
 #[derive(Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct EventDetails {}
+pub struct EventDetails {
+    pub notes: Option<String>,
+}
 
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

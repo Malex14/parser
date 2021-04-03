@@ -7,6 +7,7 @@ use std::thread::sleep;
 use std::time::Duration;
 
 mod apply_changes;
+mod apply_details;
 mod build;
 mod changestatus;
 mod events;

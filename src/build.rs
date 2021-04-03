@@ -1,4 +1,5 @@
 use crate::apply_changes::apply_changes;
+use crate::apply_details::apply_details;
 use crate::changestatus::{Changestatus, Changetype};
 use crate::events;
 use crate::generate_ics::generate_ics;
@@ -93,6 +94,12 @@ fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
             user_id, first_name, err
         )
     })?;
+
+    for mut event in &mut result_events {
+        let details = content.config.events.get(&event.name).unwrap();
+        apply_details(&mut event, details);
+    }
+
     result_events.sort_by_cached_key(|event| event.start_time);
     let ics_content = generate_ics(first_name, &result_events);
 
