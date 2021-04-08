@@ -35,6 +35,7 @@ impl Default for RemovedEvents {
 #[derive(Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct EventDetails {
+    pub alert_minutes_before: Option<u16>,
     pub notes: Option<String>,
 }
 

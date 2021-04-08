@@ -15,6 +15,7 @@ pub struct SoonToBeIcsEvent {
     pub status: EventStatus,
     pub start_time: DateTime<FixedOffset>,
     pub end_time: DateTime<FixedOffset>,
+    pub alert_minutes_before: Option<u16>,
     pub description: String,
     pub location: String,
 }
@@ -68,7 +69,7 @@ pub fn generate_ics(calendarname: &str, events: &[SoonToBeIcsEvent]) -> String {
 }
 
 fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
-    let mut lines: Vec<String> = Vec::with_capacity(10);
+    let mut lines: Vec<String> = Vec::with_capacity(12);
 
     lines.push("BEGIN:VEVENT".to_owned());
     lines.push("TRANSP:OPAQUE".to_owned());
@@ -114,6 +115,11 @@ fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
         "UID:{}@calendarbot.hawhh.de",
         calculate_event_hash(&event)
     ));
+
+    if let Some(minutes_before) = event.alert_minutes_before {
+        lines.push(create_valarm(minutes_before));
+    }
+
     lines.push("END:VEVENT".to_owned());
 
     lines.join("\n")
@@ -141,6 +147,27 @@ fn date_to_ics_date(date: &DateTime<FixedOffset>) -> String {
     date.format("%Y%m%d %H%M%S").to_string().replace(" ", "T")
 }
 
+/// <https://www.kanzaki.com/docs/ical/valarm.html>
+fn create_valarm(minutes_before: u16) -> String {
+    format!(
+        "BEGIN:VALARM\nTRIGGER:-PT{}\nACTION:AUDIO\nEND:VALARM",
+        minutes_to_ical_duration(minutes_before)
+    )
+}
+
+/// <https://www.kanzaki.com/docs/ical/duration-t.html>
+fn minutes_to_ical_duration(minutes_before: u16) -> String {
+    let hours = minutes_before / 60;
+    let minutes = minutes_before % 60;
+    if hours > 0 && minutes > 0 {
+        format!("{:02}H{:02}M", hours, minutes)
+    } else if hours > 0 {
+        format!("{:02}H", hours)
+    } else {
+        format!("{:02}M", minutes)
+    }
+}
+
 #[test]
 fn parse_ics_date() {
     let date = DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap();
@@ -156,6 +183,7 @@ fn create_minimal_event_vevent() {
         status: EventStatus::Cancelled,
         start_time: DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap(),
         end_time: DateTime::parse_from_rfc3339("2020-08-22T11:30:00+02:00").unwrap(),
+        alert_minutes_before: None,
         description: "".to_owned(),
         location: "".to_owned(),
     };
@@ -164,6 +192,24 @@ fn create_minimal_event_vevent() {
 
     assert_eq!(
         result,
-        "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:cdc823d56e1d56be@calendarbot.hawhh.de\nEND:VEVENT"
+        "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:1e64a94de608b194@calendarbot.hawhh.de\nEND:VEVENT"
     );
+}
+
+#[test]
+fn create_valarm_example() {
+    assert_eq!(
+        create_valarm(10),
+        "BEGIN:VALARM\nTRIGGER:-PT10M\nACTION:AUDIO\nEND:VALARM"
+    )
+}
+
+#[test]
+fn minutes_to_ical_duration_examples() {
+    assert_eq!(minutes_to_ical_duration(0), "00M");
+    assert_eq!(minutes_to_ical_duration(10), "10M");
+    assert_eq!(minutes_to_ical_duration(30), "30M");
+    assert_eq!(minutes_to_ical_duration(60), "01H");
+    assert_eq!(minutes_to_ical_duration(90), "01H30M");
+    assert_eq!(minutes_to_ical_duration(120), "02H");
 }

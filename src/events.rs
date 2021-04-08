@@ -49,6 +49,7 @@ impl TryFrom<EventEntry> for SoonToBeIcsEvent {
                     event.end_time, err
                 )
             })?,
+            alert_minutes_before: None,
             description: event.description.to_owned(),
             location: event.location.to_owned(),
         })
