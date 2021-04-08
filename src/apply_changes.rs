@@ -25,7 +25,28 @@ fn apply_change(
     let change_date = userconfig::parse_change_date(&change.date)
         .map_err(|err| format!("failed to parse change date {} Error: {}", change.date, err))?;
     if change.add == Some(true) {
-        // TODO: do magic
+        let end_time = change
+            .endtime
+            .to_owned()
+            .ok_or("parse change add has no end_time specified")?;
+        let time = NaiveTime::parse_from_str(&end_time, "%H:%M")
+            .map_err(|err| format!("parse change end time failed {} Error: {}", end_time, err))?;
+        let end_time = change_date.date().and_time(time).unwrap();
+
+        events.push(SoonToBeIcsEvent {
+            name: change.name.to_owned(),
+            pretty_name: if let Some(namesuffix) = &change.namesuffix {
+                format!("{} {}", change.name, namesuffix)
+            } else {
+                change.name.to_owned()
+            },
+            status: EventStatus::Confirmed,
+            start_time: change_date.to_owned(),
+            end_time,
+            alert_minutes_before: None,
+            description: "Dies ist eine zusätzliche Veranstaltung welche manuell von dir über den Telegram Bot hinzufügt wurde.".to_owned(),
+            location: change.room.to_owned().unwrap_or_default(),
+        });
     } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change_date)
     {
         let mut event = &mut events[i];
@@ -241,4 +262,28 @@ fn endtime_changed() {
     };
     apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].end_time.to_rfc3339(), "2020-05-14T08:30:00+02:00");
+}
+
+#[test]
+fn event_added() {
+    let mut events = generate_events();
+    let change = Change {
+        name: "BTI5-VSP/01".to_owned(),
+        date: "2020-05-30T08:00".to_owned(),
+        add: Some(true),
+        starttime: None,
+        endtime: Some("10:30".to_owned()),
+        namesuffix: None,
+        room: None,
+        remove: None,
+    };
+    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    assert_eq!(events.len(), 3);
+    assert_eq!(events[2].name, "BTI5-VSP/01");
+    assert_eq!(
+        events[2].start_time.to_rfc3339(),
+        "2020-05-30T10:00:00+02:00"
+    );
+    assert_eq!(events[2].end_time.to_rfc3339(), "2020-05-30T10:30:00+02:00");
+    assert_eq!(events[2].location, "");
 }
