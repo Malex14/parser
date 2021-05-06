@@ -131,13 +131,13 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           cd target/${{ matrix.triple }}/release
-          tar -czvf ../../../parser-${{ matrix.triple }}.tar.gz parser
+          tar -czvf ../../../hawhh-calendarbot-parser-${{ matrix.triple }}.tar.gz hawhh-calendarbot-parser
           cd -
       - name: Pack release (windows)
         if: runner.os == 'Windows'
         run: |
           cd target/${{ matrix.triple }}/release
-          7z a ../../../parser-${{ matrix.triple }}.zip parser.exe
+          7z a ../../../hawhh-calendarbot-parser-${{ matrix.triple }}.zip hawhh-calendarbot-parser.exe
           cd -
 
       - name: Upload Artifact

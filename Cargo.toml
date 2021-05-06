@@ -1,5 +1,5 @@
 [package]
-name = "parser"
+name = "hawhh-calendarbot-parser"
 version = "2.3.0"
 license = "AGPL-3.0-or-later"
 authors = ["EdJoPaTo <git-commit-with-a-funny-long-email-address-everyone-hates-as-it-is-too-long@edjopato.de>"]
