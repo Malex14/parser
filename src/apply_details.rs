@@ -7,7 +7,7 @@ pub fn apply_details(event: &mut SoonToBeIcsEvent, details: &EventDetails) {
     if let Some(notes) = &details.notes {
         if !notes.is_empty() {
             event.description = if event.description.is_empty() {
-                notes.to_owned()
+                notes.clone()
             } else {
                 format!("{}\n\n{}", event.description, notes)
             };

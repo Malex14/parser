@@ -85,7 +85,7 @@ fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
         return Ok(Buildresult {
             filename: ics_filename,
             changestatus: Changestatus {
-                name: first_name.to_owned(),
+                name: first_name.clone(),
                 changetype,
             },
         });
@@ -131,7 +131,7 @@ fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
     Ok(Buildresult {
         filename: ics_filename,
         changestatus: Changestatus {
-            name: first_name.to_owned(),
+            name: first_name.clone(),
             changetype,
         },
     })
@@ -180,7 +180,7 @@ pub fn all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, Str
         })?;
 
         changestati.push(Changestatus {
-            name: filename.to_owned(),
+            name: filename.clone(),
             changetype: Changetype::Removed,
         })
     }
@@ -197,7 +197,7 @@ fn get_existing_files(starts_with: &str) -> Result<Vec<String>, std::io::Error> 
             .expect("filename contains something that can not be read easily with rust");
 
         if filename.starts_with(starts_with) {
-            list.push(filename.to_owned());
+            list.push(filename);
         }
     }
 

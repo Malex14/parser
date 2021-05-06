@@ -37,7 +37,7 @@ pub fn create_change_summary(changes: &[Changestatus], to_be_shown: &[&str]) -> 
         }
 
         let vec = map.get_mut(key).unwrap();
-        vec.push(change.name.to_owned());
+        vec.push(change.name.clone());
     }
 
     let mut lines: Vec<String> = Vec::new();

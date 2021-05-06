@@ -27,25 +27,25 @@ fn apply_change(
     if change.add == Some(true) {
         let end_time = change
             .endtime
-            .to_owned()
+            .clone()
             .ok_or("parse change add has no end_time specified")?;
         let time = NaiveTime::parse_from_str(&end_time, "%H:%M")
             .map_err(|err| format!("parse change end time failed {} Error: {}", end_time, err))?;
         let end_time = change_date.date().and_time(time).unwrap();
 
         events.push(SoonToBeIcsEvent {
-            name: change.name.to_owned(),
+            name: change.name.clone(),
             pretty_name: if let Some(namesuffix) = &change.namesuffix {
                 format!("{} {}", change.name, namesuffix)
             } else {
-                change.name.to_owned()
+                change.name.clone()
             },
             status: EventStatus::Confirmed,
-            start_time: change_date.to_owned(),
+            start_time: change_date,
             end_time,
             alert_minutes_before: None,
             description: "Dies ist eine zusätzliche Veranstaltung welche manuell von dir über den Telegram Bot hinzufügt wurde.".to_owned(),
-            location: change.room.to_owned().unwrap_or_default(),
+            location: change.room.clone().unwrap_or_default(),
         });
     } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change_date)
     {
@@ -66,7 +66,7 @@ fn apply_change(
         }
 
         if let Some(room) = &change.room {
-            event.location = room.to_owned();
+            event.location = room.clone();
         }
 
         if let Some(start_time) = &change.starttime {

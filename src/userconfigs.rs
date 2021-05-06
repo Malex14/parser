@@ -39,7 +39,7 @@ fn get_existing_files() -> Result<Vec<String>, std::io::Error> {
 
         #[allow(clippy::case_sensitive_file_extension_comparisons)]
         if filename.ends_with(".json") {
-            list.push(filename.to_owned());
+            list.push(filename);
         }
     }
 

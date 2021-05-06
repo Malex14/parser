@@ -34,9 +34,6 @@ impl TryFrom<EventEntry> for SoonToBeIcsEvent {
 
     fn try_from(event: EventEntry) -> Result<Self, Self::Error> {
         Ok(SoonToBeIcsEvent {
-            name: event.name.to_owned(),
-            pretty_name: event.name.to_owned(),
-            status: EventStatus::Confirmed,
             start_time: DateTime::parse_from_rfc3339(&event.start_time).map_err(|err| {
                 format!(
                     "parse event start time failed {} Error: {}",
@@ -49,9 +46,12 @@ impl TryFrom<EventEntry> for SoonToBeIcsEvent {
                     event.end_time, err
                 )
             })?,
+            name: event.name.clone(),
+            pretty_name: event.name,
+            status: EventStatus::Confirmed,
             alert_minutes_before: None,
-            description: event.description.to_owned(),
-            location: event.location.to_owned(),
+            description: event.description,
+            location: event.location,
         })
     }
 }
