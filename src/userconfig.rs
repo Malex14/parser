@@ -142,7 +142,7 @@ fn error_on_userconfig_without_calendarfile_suffix() {
         serde_json::from_str(r#"{"changes": [], "events": []}"#);
 
     let error = test.expect_err("parsing should fail");
-    assert_eq!(error.is_data(), true);
+    assert!(error.is_data());
 }
 
 #[test]
