@@ -10,7 +10,7 @@ pub fn apply_changes(
     removed_events: &RemovedEvents,
 ) -> Result<(), String> {
     for change in changes {
-        apply_change(events, change, &removed_events)?;
+        apply_change(events, change, removed_events)?;
     }
 
     Ok(())
@@ -70,7 +70,7 @@ fn apply_change(
         }
 
         if let Some(start_time) = &change.starttime {
-            let time = NaiveTime::parse_from_str(&start_time, "%H:%M").map_err(|err| {
+            let time = NaiveTime::parse_from_str(start_time, "%H:%M").map_err(|err| {
                 format!(
                     "parse change start time failed {} Error: {}",
                     start_time, err
@@ -80,7 +80,7 @@ fn apply_change(
         }
 
         if let Some(end_time) = &change.endtime {
-            let time = NaiveTime::parse_from_str(&end_time, "%H:%M").map_err(|err| {
+            let time = NaiveTime::parse_from_str(end_time, "%H:%M").map_err(|err| {
                 format!("parse change end time failed {} Error: {}", end_time, err)
             })?;
             event.end_time = change_date.date().and_time(time).unwrap();

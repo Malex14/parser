@@ -21,10 +21,10 @@ pub fn ensure_directory() -> Result<(), std::io::Error> {
 }
 
 pub fn one(content: &UserconfigFile) -> Result<Changestatus, String> {
-    Ok(one_interal(&content)?.changestatus)
+    Ok(one_internal(content)?.changestatus)
 }
 
-fn one_interal(content: &UserconfigFile) -> Result<Buildresult, String> {
+fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
     let user_id = content.chat.id;
     let first_name = &content.chat.first_name;
     let ics_filename = format!("{}-{}.ics", user_id, &content.config.calendarfile_suffix);
@@ -151,7 +151,7 @@ pub fn all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, Str
     let mut created_files: Vec<String> = Vec::new();
 
     for content in list {
-        match one_interal(&content) {
+        match one_internal(content) {
             Ok(filechange) => {
                 changestati.push(filechange.changestatus);
                 created_files.push(filechange.filename);
@@ -182,7 +182,7 @@ pub fn all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, Str
         changestati.push(Changestatus {
             name: filename.clone(),
             changetype: Changetype::Removed,
-        })
+        });
     }
 
     Ok(changestati)

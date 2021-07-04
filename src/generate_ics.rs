@@ -59,7 +59,7 @@ pub fn generate_ics(calendarname: &str, events: &[SoonToBeIcsEvent]) -> String {
 
     let mut lines: Vec<String> = Vec::new();
     for event in events {
-        lines.push(event_as_ics_vevent_string(&event));
+        lines.push(event_as_ics_vevent_string(event));
     }
     result += &lines.join("\n");
 
@@ -113,7 +113,7 @@ fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
     lines.push("URL;VALUE=URI:https://telegram.me/HAWHHCalendarBot".to_owned());
     lines.push(format!(
         "UID:{}@calendarbot.hawhh.de",
-        calculate_event_hash(&event)
+        calculate_event_hash(event)
     ));
 
     if let Some(minutes_before) = event.alert_minutes_before {
@@ -172,7 +172,7 @@ fn minutes_to_ical_duration(minutes_before: u16) -> String {
 fn parse_ics_date() {
     let date = DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap();
     let result = date_to_ics_date(&date);
-    assert_eq!(result, "20200822T083000")
+    assert_eq!(result, "20200822T083000");
 }
 
 #[test]
@@ -201,7 +201,7 @@ fn create_valarm_example() {
     assert_eq!(
         create_valarm(10),
         "BEGIN:VALARM\nTRIGGER:-PT10M\nACTION:AUDIO\nEND:VALARM"
-    )
+    );
 }
 
 #[test]

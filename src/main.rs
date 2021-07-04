@@ -68,6 +68,6 @@ fn do_all() -> Result<String, String> {
 }
 
 fn do_specific(userconfig_filename: &str) -> Result<Changestatus, String> {
-    let config = userconfigs::load_specific(&userconfig_filename)?;
+    let config = userconfigs::load_specific(userconfig_filename)?;
     build::one(&config)
 }
