@@ -33,6 +33,7 @@ fn apply_change(
             .map_err(|err| format!("parse change end time failed {} Error: {}", end_time, err))?;
         let end_time = change_date.date().and_time(time).unwrap();
 
+        #[allow(clippy::option_if_let_else)]
         events.push(SoonToBeIcsEvent {
             name: change.name.clone(),
             pretty_name: if let Some(namesuffix) = &change.namesuffix {

@@ -103,9 +103,9 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
         )
     })?;
 
-    for mut event in &mut user_events {
+    for event in &mut user_events {
         let details = content.config.events.get(&event.name).unwrap();
-        apply_details(&mut event, details);
+        apply_details(event, details);
     }
 
     user_events.sort_by_cached_key(|event| event.start_time);

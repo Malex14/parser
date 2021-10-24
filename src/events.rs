@@ -33,7 +33,7 @@ impl TryFrom<EventEntry> for SoonToBeIcsEvent {
     type Error = String;
 
     fn try_from(event: EventEntry) -> Result<Self, Self::Error> {
-        Ok(SoonToBeIcsEvent {
+        Ok(Self {
             start_time: DateTime::parse_from_rfc3339(&event.start_time).map_err(|err| {
                 format!(
                     "parse event start time failed {} Error: {}",
