@@ -20,15 +20,15 @@ RUN cargo build --release --locked
 
 # Start building the final image
 FROM docker.io/library/debian:bullseye-slim
-VOLUME /app/calendars
-VOLUME /app/eventfiles
-VOLUME /app/userconfig
-WORKDIR /app
-
 RUN apt-get update \
     && apt-get upgrade -y \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* /var/cache/* /var/log/*
+
+WORKDIR /app
+VOLUME /app/calendars
+VOLUME /app/eventfiles
+VOLUME /app/userconfig
 
 COPY --from=builder /build/target/release/hawhh-calendarbot-parser /usr/bin/
 
