@@ -56,13 +56,20 @@ pub struct Userconfig {
 
 #[derive(Deserialize, Debug)]
 pub struct Change {
-    pub add: Option<bool>,
     pub name: String,
     pub date: String,
-    pub remove: Option<bool>,
-    pub namesuffix: Option<String>,
+
+    #[serde(default)]
+    pub add: bool,
+    #[serde(default)]
+    pub remove: bool,
+
+    /// Used when adapting events
     pub starttime: Option<String>,
+    /// Used for adapting and creating new events
     pub endtime: Option<String>,
+
+    pub namesuffix: Option<String>,
     pub room: Option<String>,
 }
 
@@ -195,13 +202,13 @@ fn can_deserialize_userconfig_with_event_map() -> Result<(), serde_json::Error> 
 #[test]
 fn can_deserialize_minimal_change() -> Result<(), serde_json::Error> {
     let test: Change = serde_json::from_str(r#"{"name": "Tree", "date": "2020-12-20T22:04"}"#)?;
-    assert_eq!(test.add, None);
     assert_eq!(test.name, "Tree");
     assert_eq!(test.date, "2020-12-20T22:04");
-    assert_eq!(test.remove, None);
-    assert_eq!(test.namesuffix, None);
+    assert!(!test.add);
+    assert!(!test.remove);
     assert_eq!(test.starttime, None);
     assert_eq!(test.endtime, None);
+    assert_eq!(test.namesuffix, None);
     assert_eq!(test.room, None);
 
     Ok(())

@@ -24,7 +24,7 @@ fn apply_change(
     let mut iter = events.iter();
     let change_date = userconfig::parse_change_date(&change.date)
         .map_err(|err| format!("failed to parse change date {} Error: {}", change.date, err))?;
-    if change.add == Some(true) {
+    if change.add {
         let end_time = change
             .endtime
             .clone()
@@ -51,7 +51,7 @@ fn apply_change(
     } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change_date)
     {
         let mut event = &mut events[i];
-        if change.remove == Some(true) {
+        if change.remove {
             match removed_events {
                 RemovedEvents::Cancelled => event.status = EventStatus::Cancelled,
                 RemovedEvents::Emoji => event.pretty_name = format!("🚫 {}", event.pretty_name),
@@ -126,12 +126,12 @@ fn non_existing_event_of_change_is_skipped() {
     let change = Change {
         name: "BTI5-VS".to_owned(),
         date: "2020-05-15T13:37".to_owned(),
-        add: None,
+        add: false,
+        remove: true,
         starttime: None,
         endtime: None,
         namesuffix: None,
         room: None,
-        remove: Some(true),
     };
     apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events.len(), 2);
@@ -147,12 +147,12 @@ fn remove_event_is_removed_completly() {
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
         date: "2020-05-14T06:15".to_owned(),
-        add: None,
+        add: false,
+        remove: true,
         starttime: None,
         endtime: None,
         namesuffix: None,
         room: None,
-        remove: Some(true),
     };
     apply_change(&mut events, &change, RemovedEvents::Removed).unwrap();
     assert_eq!(events.len(), 1);
@@ -164,12 +164,12 @@ fn remove_event_gets_marked_as_cancelled() {
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
         date: "2020-05-14T06:15".to_owned(),
-        add: None,
+        add: false,
+        remove: true,
         starttime: None,
         endtime: None,
         namesuffix: None,
         room: None,
-        remove: Some(true),
     };
     apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events.len(), 2);
@@ -182,12 +182,12 @@ fn remove_event_gets_emoji_prefix() {
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
         date: "2020-05-14T06:15".to_owned(),
-        add: None,
+        add: false,
+        remove: true,
         starttime: None,
         endtime: None,
         namesuffix: None,
         room: None,
-        remove: Some(true),
     };
     apply_change(&mut events, &change, RemovedEvents::Emoji).unwrap();
     assert_eq!(events.len(), 2);
@@ -200,12 +200,12 @@ fn namesuffix_is_added() {
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
         date: "2020-05-14T06:15".to_owned(),
-        add: None,
+        add: false,
+        remove: false,
         starttime: None,
         endtime: None,
         namesuffix: Some("whatever".to_owned()),
         room: None,
-        remove: None,
     };
     apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].pretty_name, "BTI5-VSP/01 whatever");
@@ -217,12 +217,12 @@ fn room_is_overwritten() {
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
         date: "2020-05-14T06:15".to_owned(),
-        add: None,
+        add: false,
+        remove: false,
         starttime: None,
         endtime: None,
         namesuffix: None,
         room: Some("whereever".to_owned()),
-        remove: None,
     };
     apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].location, "whereever");
@@ -234,12 +234,12 @@ fn starttime_changed() {
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
         date: "2020-05-14T06:15".to_owned(),
-        add: None,
+        add: false,
+        remove: false,
         starttime: Some("08:30".to_owned()),
         endtime: None,
         namesuffix: None,
         room: None,
-        remove: None,
     };
     apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(
@@ -254,12 +254,12 @@ fn endtime_changed() {
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
         date: "2020-05-14T06:15".to_owned(),
-        add: None,
+        add: false,
+        remove: false,
         starttime: None,
         endtime: Some("08:30".to_owned()),
         namesuffix: None,
         room: None,
-        remove: None,
     };
     apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].end_time.to_rfc3339(), "2020-05-14T08:30:00+02:00");
@@ -271,12 +271,12 @@ fn event_added() {
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
         date: "2020-05-30T08:00".to_owned(),
-        add: Some(true),
+        add: true,
+        remove: false,
         starttime: None,
         endtime: Some("10:30".to_owned()),
         namesuffix: None,
         room: None,
-        remove: None,
     };
     apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events.len(), 3);
