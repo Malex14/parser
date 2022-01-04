@@ -94,7 +94,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
     apply_changes(
         &mut user_events,
         &content.config.changes,
-        &content.config.removed_events,
+        content.config.removed_events,
     )
     .map_err(|err| {
         format!(

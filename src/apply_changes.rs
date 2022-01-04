@@ -7,7 +7,7 @@ use chrono::NaiveTime;
 pub fn apply_changes(
     events: &mut Vec<SoonToBeIcsEvent>,
     changes: &[Change],
-    removed_events: &RemovedEvents,
+    removed_events: RemovedEvents,
 ) -> Result<(), String> {
     for change in changes {
         apply_change(events, change, removed_events)?;
@@ -19,7 +19,7 @@ pub fn apply_changes(
 fn apply_change(
     events: &mut Vec<SoonToBeIcsEvent>,
     change: &Change,
-    removed_events: &RemovedEvents,
+    removed_events: RemovedEvents,
 ) -> Result<(), String> {
     let mut iter = events.iter();
     let change_date = userconfig::parse_change_date(&change.date)
@@ -133,7 +133,7 @@ fn non_existing_event_of_change_is_skipped() {
         room: None,
         remove: Some(true),
     };
-    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events.len(), 2);
 
     let expected = generate_events();
@@ -154,7 +154,7 @@ fn remove_event_is_removed_completly() {
         room: None,
         remove: Some(true),
     };
-    apply_change(&mut events, &change, &RemovedEvents::Removed).unwrap();
+    apply_change(&mut events, &change, RemovedEvents::Removed).unwrap();
     assert_eq!(events.len(), 1);
 }
 
@@ -171,7 +171,7 @@ fn remove_event_gets_marked_as_cancelled() {
         room: None,
         remove: Some(true),
     };
-    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events.len(), 2);
     assert_eq!(events[1].status, EventStatus::Cancelled);
 }
@@ -189,7 +189,7 @@ fn remove_event_gets_emoji_prefix() {
         room: None,
         remove: Some(true),
     };
-    apply_change(&mut events, &change, &RemovedEvents::Emoji).unwrap();
+    apply_change(&mut events, &change, RemovedEvents::Emoji).unwrap();
     assert_eq!(events.len(), 2);
     assert_eq!(events[1].pretty_name, "🚫 BTI5-VSP/01");
 }
@@ -207,7 +207,7 @@ fn namesuffix_is_added() {
         room: None,
         remove: None,
     };
-    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].pretty_name, "BTI5-VSP/01 whatever");
 }
 
@@ -224,7 +224,7 @@ fn room_is_overwritten() {
         room: Some("whereever".to_owned()),
         remove: None,
     };
-    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].location, "whereever");
 }
 
@@ -241,7 +241,7 @@ fn starttime_changed() {
         room: None,
         remove: None,
     };
-    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(
         events[1].start_time.to_rfc3339(),
         "2020-05-14T08:30:00+02:00"
@@ -261,7 +261,7 @@ fn endtime_changed() {
         room: None,
         remove: None,
     };
-    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].end_time.to_rfc3339(), "2020-05-14T08:30:00+02:00");
 }
 
@@ -278,7 +278,7 @@ fn event_added() {
         room: None,
         remove: None,
     };
-    apply_change(&mut events, &change, &RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events.len(), 3);
     assert_eq!(events[2].name, "BTI5-VSP/01");
     assert_eq!(

@@ -18,7 +18,7 @@ pub struct Chat {
     pub first_name: String,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
+#[derive(Deserialize, Copy, Clone, Debug, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum RemovedEvents {
     Cancelled,
