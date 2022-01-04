@@ -2,7 +2,7 @@ use std::convert::TryFrom;
 use std::fs;
 use std::path::Path;
 
-use chrono::DateTime;
+use chrono::{DateTime, FixedOffset};
 use serde::Deserialize;
 
 use crate::generate_ics::{EventStatus, SoonToBeIcsEvent};
@@ -13,8 +13,8 @@ pub struct EventEntry {
     pub name: String,
     pub location: String,
     pub description: String,
-    pub start_time: String,
-    pub end_time: String,
+    pub start_time: DateTime<FixedOffset>,
+    pub end_time: DateTime<FixedOffset>,
 }
 
 pub const FOLDER: &str = "eventfiles";
@@ -34,18 +34,8 @@ impl TryFrom<EventEntry> for SoonToBeIcsEvent {
 
     fn try_from(event: EventEntry) -> Result<Self, Self::Error> {
         Ok(Self {
-            start_time: DateTime::parse_from_rfc3339(&event.start_time).map_err(|err| {
-                format!(
-                    "parse event start time failed {} Error: {}",
-                    event.start_time, err
-                )
-            })?,
-            end_time: DateTime::parse_from_rfc3339(&event.end_time).map_err(|err| {
-                format!(
-                    "parse event end time failed {} Error: {}",
-                    event.end_time, err
-                )
-            })?,
+            start_time: event.start_time,
+            end_time: event.end_time,
             name: event.name.clone(),
             pretty_name: event.name,
             status: EventStatus::Confirmed,
@@ -59,14 +49,20 @@ impl TryFrom<EventEntry> for SoonToBeIcsEvent {
 #[test]
 fn can_deserialize_event_entry() -> Result<(), serde_json::Error> {
     let test: EventEntry = serde_json::from_str(
-        r#"{"Name": "BTI1-TI", "Location": "1060", "Description": "Dozent: HTM", "StartTime": "08:30", "EndTime": "11:30"}"#,
+        r#"{"Name": "BTI1-TI", "Location": "1060", "Description": "Dozent: HTM", "StartTime": "2022-01-13T11:40:00+01:00", "EndTime": "2022-01-13T12:00:00+01:00"}"#,
     )?;
 
     assert_eq!(test.name, "BTI1-TI");
     assert_eq!(test.location, "1060");
     assert_eq!(test.description, "Dozent: HTM");
-    assert_eq!(test.start_time, "08:30");
-    assert_eq!(test.end_time, "11:30");
+    assert_eq!(
+        test.start_time,
+        DateTime::parse_from_rfc3339("2022-01-13T11:40:00+01:00").unwrap()
+    );
+    assert_eq!(
+        test.end_time,
+        DateTime::parse_from_rfc3339("2022-01-13T12:00:00+01:00").unwrap()
+    );
 
     Ok(())
 }
