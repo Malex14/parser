@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, FixedOffset, NaiveDateTime, TimeZone};
+use chrono::{DateTime, FixedOffset, NaiveDateTime, NaiveTime, TimeZone};
 use chrono_tz::Europe::Berlin;
 use serde::de::Visitor;
 use serde::Deserialize;
@@ -64,10 +64,12 @@ pub struct Change {
     #[serde(default)]
     pub remove: bool,
 
+    #[serde(default, deserialize_with = "deserialize_change_time")]
     /// Used when adapting events
-    pub starttime: Option<String>,
+    pub starttime: Option<NaiveTime>,
+    #[serde(default, deserialize_with = "deserialize_change_time")]
     /// Used for adapting and creating new events
-    pub endtime: Option<String>,
+    pub endtime: Option<NaiveTime>,
 
     pub namesuffix: Option<String>,
     pub room: Option<String>,
@@ -112,6 +114,15 @@ where
     }
 
     deserializer.deserialize_any(EventArrayOrMap)
+}
+
+fn deserialize_change_time<'de, D>(deserializer: D) -> Result<Option<NaiveTime>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let time = NaiveTime::parse_from_str(&s, "%H:%M").map_err(serde::de::Error::custom)?;
+    Ok(Some(time))
 }
 
 pub fn parse_change_date(raw: &str) -> Result<DateTime<FixedOffset>, String> {
@@ -210,6 +221,36 @@ fn can_deserialize_minimal_change() -> Result<(), serde_json::Error> {
     assert_eq!(test.endtime, None);
     assert_eq!(test.namesuffix, None);
     assert_eq!(test.room, None);
+    Ok(())
+}
 
+#[test]
+fn can_deserialize_change_remove() -> Result<(), serde_json::Error> {
+    let test: Change =
+        serde_json::from_str(r#"{"name": "Tree", "date": "2020-12-20T22:04", "remove": true}"#)?;
+    assert_eq!(test.name, "Tree");
+    assert_eq!(test.date, "2020-12-20T22:04");
+    assert!(!test.add);
+    assert!(test.remove);
+    assert_eq!(test.starttime, None);
+    assert_eq!(test.endtime, None);
+    assert_eq!(test.namesuffix, None);
+    assert_eq!(test.room, None);
+    Ok(())
+}
+
+#[test]
+fn can_deserialize_change_add() -> Result<(), serde_json::Error> {
+    let test: Change = serde_json::from_str(
+        r#"{"name": "Tree", "date": "2020-12-20T22:04", "add": true, "endtime": "23:42"}"#,
+    )?;
+    assert_eq!(test.name, "Tree");
+    assert_eq!(test.date, "2020-12-20T22:04");
+    assert!(test.add);
+    assert!(!test.remove);
+    assert_eq!(test.starttime, None);
+    assert_eq!(test.endtime, Some(NaiveTime::from_hms(23, 42, 0)));
+    assert_eq!(test.namesuffix, None);
+    assert_eq!(test.room, None);
     Ok(())
 }

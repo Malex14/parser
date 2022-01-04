@@ -2,7 +2,6 @@
 
 use crate::generate_ics::{EventStatus, SoonToBeIcsEvent};
 use crate::userconfig::{self, Change, RemovedEvents};
-use chrono::NaiveTime;
 
 pub fn apply_changes(
     events: &mut Vec<SoonToBeIcsEvent>,
@@ -27,11 +26,8 @@ fn apply_change(
     if change.add {
         let end_time = change
             .endtime
-            .clone()
             .ok_or("parse change add has no end_time specified")?;
-        let time = NaiveTime::parse_from_str(&end_time, "%H:%M")
-            .map_err(|err| format!("parse change end time failed {} Error: {}", end_time, err))?;
-        let end_time = change_date.date().and_time(time).unwrap();
+        let end_time = change_date.date().and_time(end_time).unwrap();
 
         #[allow(clippy::option_if_let_else)]
         events.push(SoonToBeIcsEvent {
@@ -70,21 +66,12 @@ fn apply_change(
             event.location = room.clone();
         }
 
-        if let Some(start_time) = &change.starttime {
-            let time = NaiveTime::parse_from_str(start_time, "%H:%M").map_err(|err| {
-                format!(
-                    "parse change start time failed {} Error: {}",
-                    start_time, err
-                )
-            })?;
-            event.start_time = change_date.date().and_time(time).unwrap();
+        if let Some(time) = &change.starttime {
+            event.start_time = change_date.date().and_time(*time).unwrap();
         }
 
-        if let Some(end_time) = &change.endtime {
-            let time = NaiveTime::parse_from_str(end_time, "%H:%M").map_err(|err| {
-                format!("parse change end time failed {} Error: {}", end_time, err)
-            })?;
-            event.end_time = change_date.date().and_time(time).unwrap();
+        if let Some(time) = &change.endtime {
+            event.end_time = change_date.date().and_time(*time).unwrap();
         }
     } else {
         // Event for this change doesnt exist.
@@ -236,7 +223,7 @@ fn starttime_changed() {
         date: "2020-05-14T06:15".to_owned(),
         add: false,
         remove: false,
-        starttime: Some("08:30".to_owned()),
+        starttime: Some(chrono::NaiveTime::from_hms(8, 30, 0)),
         endtime: None,
         namesuffix: None,
         room: None,
@@ -257,7 +244,7 @@ fn endtime_changed() {
         add: false,
         remove: false,
         starttime: None,
-        endtime: Some("08:30".to_owned()),
+        endtime: Some(chrono::NaiveTime::from_hms(8, 30, 0)),
         namesuffix: None,
         room: None,
     };
@@ -274,7 +261,7 @@ fn event_added() {
         add: true,
         remove: false,
         starttime: None,
-        endtime: Some("10:30".to_owned()),
+        endtime: Some(chrono::NaiveTime::from_hms(10, 30, 0)),
         namesuffix: None,
         room: None,
     };
