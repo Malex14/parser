@@ -65,7 +65,7 @@ pub fn generate_ics(calendarname: &str, events: &[SoonToBeIcsEvent]) -> String {
 
     result += ICS_SUFFIX;
 
-    result.replace("\n", "\r\n")
+    result.replace('\n', "\r\n")
 }
 
 fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
@@ -127,10 +127,10 @@ fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
 
 /// escape according to <https://www.kanzaki.com/docs/ical/text.html>
 fn string_to_ical_escaped_text(text: &str) -> String {
-    text.replace("\\", "\\\\")
-        .replace(",", "\\,")
-        .replace(";", "\\;")
-        .replace("\n", "\\n")
+    text.replace('\\', "\\\\")
+        .replace(',', "\\,")
+        .replace(';', "\\;")
+        .replace('\n', "\\n")
 }
 
 fn calculate_event_hash(event: &SoonToBeIcsEvent) -> String {
@@ -144,7 +144,7 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
 }
 
 fn date_to_ics_date(date: &DateTime<FixedOffset>) -> String {
-    date.format("%Y%m%d %H%M%S").to_string().replace(" ", "T")
+    date.format("%Y%m%d %H%M%S").to_string().replace(' ', "T")
 }
 
 /// <https://www.kanzaki.com/docs/ical/valarm.html>

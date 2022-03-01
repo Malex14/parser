@@ -20,7 +20,7 @@ pub struct EventEntry {
 pub const FOLDER: &str = "eventfiles";
 
 pub fn read(name: &str) -> Result<Vec<EventEntry>, String> {
-    let filename = name.replace("/", "-");
+    let filename = name.replace('/', "-");
     let path = Path::new(FOLDER).join(filename + ".json");
     let content = fs::read_to_string(path).map_err(|err| format!("failed to read: {}", err))?;
     let event_entries: Vec<EventEntry> =
