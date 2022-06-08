@@ -2,13 +2,13 @@ use chrono::{DateTime, FixedOffset};
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
-#[derive(Debug, Hash, PartialEq)]
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub enum EventStatus {
     Confirmed,
     Cancelled,
 }
 
-#[derive(Debug, Hash, PartialEq)]
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub struct SoonToBeIcsEvent {
     pub name: String,
     pub pretty_name: String,

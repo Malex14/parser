@@ -119,7 +119,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
         changetype = Changetype::Added;
     };
 
-    if changetype == Changetype::Changed || changetype == Changetype::Added {
+    if matches!(changetype, Changetype::Changed | Changetype::Added) {
         fs::write(&path, &ics_content).map_err(|err| {
             format!(
                 "failed to write ics file content for user {} {} Error: {}",
