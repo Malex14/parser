@@ -18,18 +18,13 @@ pub struct Chat {
     pub first_name: String,
 }
 
-#[derive(Deserialize, Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum RemovedEvents {
+    #[default]
     Cancelled,
     Removed,
     Emoji,
-}
-
-impl Default for RemovedEvents {
-    fn default() -> Self {
-        Self::Cancelled
-    }
 }
 
 #[derive(Deserialize, Debug, Default)]
