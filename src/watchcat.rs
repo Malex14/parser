@@ -17,11 +17,11 @@ impl Watchcat {
 
         // Create a watcher object, delivering debounced events.
         let mut watcher = RecommendedWatcher::new(tx, Duration::from_secs(10))
-            .map_err(|err| format!("failed to create watcher Error: {}", err))?;
+            .map_err(|err| format!("failed to create watcher Error: {err}"))?;
 
         watcher
             .watch(folder, RecursiveMode::NonRecursive)
-            .map_err(|err| format!("failed to watch {} Error: {}", folder, err))?;
+            .map_err(|err| format!("failed to watch {folder} Error: {err}"))?;
 
         Ok(Self { rx, watcher })
     }

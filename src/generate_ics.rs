@@ -53,7 +53,7 @@ pub fn generate_ics(calendarname: &str, events: &[SoonToBeIcsEvent]) -> String {
     let mut result = String::default();
 
     result += ICS_PREFIX;
-    let calname = format!("X-WR-CALNAME:@HAWHHCalendarBot ({})\n", calendarname);
+    let calname = format!("X-WR-CALNAME:@HAWHHCalendarBot ({calendarname})\n");
     result += &calname;
     result += ICS_TIMEZONE;
 
@@ -160,11 +160,11 @@ fn minutes_to_ical_duration(minutes_before: u16) -> String {
     let hours = minutes_before / 60;
     let minutes = minutes_before % 60;
     if hours > 0 && minutes > 0 {
-        format!("{:02}H{:02}M", hours, minutes)
+        format!("{hours:02}H{minutes:02}M")
     } else if hours > 0 {
-        format!("{:02}H", hours)
+        format!("{hours:02}H")
     } else {
-        format!("{:02}M", minutes)
+        format!("{minutes:02}M")
     }
 }
 
@@ -184,8 +184,8 @@ fn create_minimal_event_vevent() {
         start_time: DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap(),
         end_time: DateTime::parse_from_rfc3339("2020-08-22T11:30:00+02:00").unwrap(),
         alert_minutes_before: None,
-        description: "".to_owned(),
-        location: "".to_owned(),
+        description: String::new(),
+        location: String::new(),
     };
 
     let result = event_as_ics_vevent_string(&event);

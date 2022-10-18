@@ -38,19 +38,19 @@ fn main() {
             println!("eventfile change detected... ");
             sleep(Duration::from_secs(15));
             event_changes.append(&mut event_watcher.get_changed_filenames());
-            println!("changed ({:3}): {:?}", event_changes.len(), event_changes);
+            println!("changed ({:3}): {event_changes:?}", event_changes.len());
 
             match do_all() {
-                Ok(summary) => println!("{}", summary),
-                Err(err) => println!("failed to build all {}", err),
+                Ok(summary) => println!("{summary}"),
+                Err(err) => println!("failed to build all {err}"),
             }
         }
 
         for filename in userconfig_watcher.get_changed_filenames() {
-            println!("userconfig changed {:>16}... ", filename);
+            println!("userconfig changed {filename:>16}... ");
             match do_specific(&filename) {
                 Ok(change) => println!("{:?} {}", change.changetype, change.name),
-                Err(err) => println!("{}", err),
+                Err(err) => println!("{err}"),
             }
         }
 

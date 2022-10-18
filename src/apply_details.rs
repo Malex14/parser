@@ -9,7 +9,7 @@ pub fn apply_details(event: &mut SoonToBeIcsEvent, details: &EventDetails) {
             event.description = if event.description.is_empty() {
                 notes.clone()
             } else {
-                format!("{}\n\n{}", event.description, notes)
+                format!("{}\n\n{notes}", event.description)
             };
         }
     }
@@ -25,7 +25,7 @@ fn create_event(description: &str) -> SoonToBeIcsEvent {
         end_time: chrono::DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
         alert_minutes_before: None,
         description: description.to_owned(),
-        location: "".to_owned(),
+        location: String::new(),
     }
 }
 

@@ -22,7 +22,7 @@ fn apply_change(
 ) -> Result<(), String> {
     let mut iter = events.iter();
     let change_date = userconfig::parse_change_date(&change.date)
-        .map_err(|err| format!("failed to parse change date {} Error: {}", change.date, err))?;
+        .map_err(|err| format!("failed to parse change date {} Error: {err}", change.date))?;
     if change.add {
         let end_time = change
             .endtime
@@ -33,7 +33,7 @@ fn apply_change(
         events.push(SoonToBeIcsEvent {
             name: change.name.clone(),
             pretty_name: if let Some(namesuffix) = &change.namesuffix {
-                format!("{} {}", change.name, namesuffix)
+                format!("{} {namesuffix}", change.name)
             } else {
                 change.name.clone()
             },
@@ -59,7 +59,7 @@ fn apply_change(
         }
 
         if let Some(namesuffix) = &change.namesuffix {
-            event.pretty_name = format!("{} {}", event.pretty_name, namesuffix);
+            event.pretty_name = format!("{} {namesuffix}", event.pretty_name);
         }
 
         if let Some(room) = &change.room {
@@ -91,8 +91,8 @@ fn generate_events() -> Vec<SoonToBeIcsEvent> {
             start_time: chrono::DateTime::parse_from_rfc3339("2020-04-02T08:15:00+02:00").unwrap(),
             end_time: chrono::DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
             alert_minutes_before: None,
-            description: "".to_owned(),
-            location: "".to_owned(),
+            description: String::new(),
+            location: String::new(),
         },
         SoonToBeIcsEvent {
             name: "BTI5-VSP/01".to_owned(),
@@ -101,8 +101,8 @@ fn generate_events() -> Vec<SoonToBeIcsEvent> {
             start_time: chrono::DateTime::parse_from_rfc3339("2020-05-14T08:15:00+02:00").unwrap(),
             end_time: chrono::DateTime::parse_from_rfc3339("2020-05-14T11:15:00+02:00").unwrap(),
             alert_minutes_before: None,
-            description: "".to_owned(),
-            location: "".to_owned(),
+            description: String::new(),
+            location: String::new(),
         },
     ]
 }

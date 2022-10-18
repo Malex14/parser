@@ -123,10 +123,10 @@ where
 pub fn parse_change_date(raw: &str) -> Result<DateTime<FixedOffset>, String> {
     let tless = raw.replace('T', " ");
     let naive = NaiveDateTime::parse_from_str(&tless, "%Y-%m-%d %H:%M")
-        .map_err(|err| format!("parse_datetime failed naive {} Error: {}", raw, err))?;
+        .map_err(|err| format!("parse_datetime failed naive {raw} Error: {err}"))?;
     let date_time = Berlin.from_utc_datetime(&naive);
     let fixed_offset = DateTime::parse_from_rfc3339(&date_time.to_rfc3339())
-        .map_err(|err| format!("parse_datetime failed fixed_offset {} Error: {}", raw, err))?;
+        .map_err(|err| format!("parse_datetime failed fixed_offset {raw} Error: {err}"))?;
     Ok(fixed_offset)
 }
 

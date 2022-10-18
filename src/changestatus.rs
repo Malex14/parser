@@ -43,7 +43,7 @@ pub fn create_change_summary(changes: &[Changestatus], to_be_shown: &[&str]) -> 
     for key in to_be_shown {
         if let Some(val) = map.get_mut(key) {
             val.sort_by_key(|o| o.to_lowercase());
-            lines.push(format!("{:7} ({:3}): {:?}", key, val.len(), val));
+            lines.push(format!("{key:7} ({:3}): {val:?}", val.len()));
         }
     }
 

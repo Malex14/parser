@@ -27,13 +27,13 @@ pub fn one(content: &UserconfigFile) -> Result<Changestatus, String> {
 fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
     let user_id = content.chat.id;
     let first_name = &content.chat.first_name;
-    let ics_filename = format!("{}-{}.ics", user_id, &content.config.calendarfile_suffix);
+    let ics_filename = format!("{user_id}-{}.ics", &content.config.calendarfile_suffix);
     let path = Path::new(FOLDER).join(&ics_filename);
 
     let mut changetype = Changetype::Same;
 
-    let existing = get_existing_files(&format!("{}-", user_id))
-        .map_err(|err| format!("failed to read existing calendars of user {}", err))?;
+    let existing = get_existing_files(&format!("{user_id}-"))
+        .map_err(|err| format!("failed to read existing calendars of user {err}"))?;
 
     match existing.len() {
         1 => {
@@ -41,7 +41,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
                 let existing_path = Path::new(FOLDER).join(&existing[0]);
 
                 fs::rename(&existing_path, &path)
-                    .map_err(|err| format!("failed to rename calendars of user {}", err))?;
+                    .map_err(|err| format!("failed to rename calendars of user {err}"))?;
 
                 changetype = Changetype::Moved;
             }
@@ -65,7 +65,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
     for name in content.config.events.keys() {
         match load_and_parse_events(name) {
             Ok(mut events) => user_events.append(&mut events),
-            Err(err) => println!("skip event {:32} {}", name, err),
+            Err(err) => println!("skip event {name:32} {err}"),
         }
     }
 
@@ -157,14 +157,14 @@ pub fn all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, Str
                 created_files.push(filechange.filename);
             }
             Err(error) => println!(
-                "build for {} {} failed. Error: {}",
-                content.chat.id, content.chat.first_name, error
+                "build for {} {} failed. Error: {error}",
+                content.chat.id, content.chat.first_name
             ),
         }
     }
 
     let existing = get_existing_files("")
-        .map_err(|err| format!("failed to read calendars dir for cleanup {}", err))?;
+        .map_err(|err| format!("failed to read calendars dir for cleanup {err}"))?;
 
     for filename in &existing {
         if created_files.contains(filename) {
