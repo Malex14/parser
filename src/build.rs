@@ -40,7 +40,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
             if existing[0] != ics_filename {
                 let existing_path = Path::new(FOLDER).join(&existing[0]);
 
-                fs::rename(&existing_path, &path)
+                fs::rename(existing_path, &path)
                     .map_err(|err| format!("failed to rename calendars of user {err}"))?;
 
                 changetype = Changetype::Moved;
@@ -51,10 +51,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
             for filename in existing {
                 let existing_path = Path::new(FOLDER).join(filename);
                 fs::remove_file(existing_path).map_err(|err| {
-                    format!(
-                        "failed to remove superfluous calendars of user {} {} Error: {}",
-                        user_id, first_name, err
-                    )
+                    format!("failed to remove superfluous calendars of user {user_id} {first_name} Error: {err}")
                 })?;
                 changetype = Changetype::Removed;
             }
@@ -72,10 +69,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
     if user_events.is_empty() {
         if path.exists() {
             fs::remove_file(&path).map_err(|err| {
-                format!(
-                    "failed to remove calendar with now 0 events {} {} Error: {}",
-                    user_id, first_name, err
-                )
+                format!("failed to remove calendar with now 0 events {user_id} {first_name} Error: {err}")
             })?;
             changetype = Changetype::Removed;
         } else {
@@ -97,10 +91,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
         content.config.removed_events,
     )
     .map_err(|err| {
-        format!(
-            "failed to apply changes for user {} {} Error: {}",
-            user_id, first_name, err
-        )
+        format!("failed to apply changes for user {user_id} {first_name} Error: {err}")
     })?;
 
     for event in &mut user_events {
@@ -121,10 +112,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
 
     if matches!(changetype, Changetype::Changed | Changetype::Added) {
         fs::write(&path, &ics_content).map_err(|err| {
-            format!(
-                "failed to write ics file content for user {} {} Error: {}",
-                user_id, first_name, err
-            )
+            format!("failed to write ics file content for user {user_id} {first_name} Error: {err}")
         })?;
     }
 
@@ -173,10 +161,7 @@ pub fn all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, Str
 
         let path = Path::new(FOLDER).join(filename);
         fs::remove_file(path).map_err(|err| {
-            format!(
-                "failed to remove superfluous calendar file {} Error: {}",
-                filename, err
-            )
+            format!("failed to remove superfluous calendar file {filename} Error: {err}")
         })?;
 
         changestati.push(Changestatus {
