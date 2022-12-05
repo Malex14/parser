@@ -244,7 +244,10 @@ fn can_deserialize_change_add() -> Result<(), serde_json::Error> {
     assert!(test.add);
     assert!(!test.remove);
     assert_eq!(test.starttime, None);
-    assert_eq!(test.endtime, Some(NaiveTime::from_hms(23, 42, 0)));
+    assert_eq!(
+        test.endtime,
+        Some(NaiveTime::from_hms_opt(23, 42, 0).unwrap())
+    );
     assert_eq!(test.namesuffix, None);
     assert_eq!(test.room, None);
     Ok(())

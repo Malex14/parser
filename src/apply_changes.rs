@@ -27,7 +27,11 @@ fn apply_change(
         let end_time = change
             .endtime
             .ok_or("parse change add has no end_time specified")?;
-        let end_time = change_date.date().and_time(end_time).unwrap();
+        let end_time = change_date
+            .date_naive()
+            .and_time(end_time)
+            .and_local_timezone(change_date.timezone())
+            .unwrap();
 
         #[allow(clippy::option_if_let_else)]
         events.push(SoonToBeIcsEvent {
@@ -67,11 +71,19 @@ fn apply_change(
         }
 
         if let Some(time) = &change.starttime {
-            event.start_time = change_date.date().and_time(*time).unwrap();
+            event.start_time = change_date
+                .date_naive()
+                .and_time(*time)
+                .and_local_timezone(change_date.timezone())
+                .unwrap();
         }
 
         if let Some(time) = &change.endtime {
-            event.end_time = change_date.date().and_time(*time).unwrap();
+            event.end_time = change_date
+                .date_naive()
+                .and_time(*time)
+                .and_local_timezone(change_date.timezone())
+                .unwrap();
         }
     } else {
         // Event for this change doesnt exist.
@@ -223,7 +235,7 @@ fn starttime_changed() {
         date: "2020-05-14T06:15".to_owned(),
         add: false,
         remove: false,
-        starttime: Some(chrono::NaiveTime::from_hms(8, 30, 0)),
+        starttime: Some(chrono::NaiveTime::from_hms_opt(8, 30, 0).unwrap()),
         endtime: None,
         namesuffix: None,
         room: None,
@@ -244,7 +256,7 @@ fn endtime_changed() {
         add: false,
         remove: false,
         starttime: None,
-        endtime: Some(chrono::NaiveTime::from_hms(8, 30, 0)),
+        endtime: Some(chrono::NaiveTime::from_hms_opt(8, 30, 0).unwrap()),
         namesuffix: None,
         room: None,
     };
@@ -261,7 +273,7 @@ fn event_added() {
         add: true,
         remove: false,
         starttime: None,
-        endtime: Some(chrono::NaiveTime::from_hms(10, 30, 0)),
+        endtime: Some(chrono::NaiveTime::from_hms_opt(10, 30, 0).unwrap()),
         namesuffix: None,
         room: None,
     };
