@@ -1,6 +1,6 @@
 [package]
 name = "hawhh-calendarbot-parser"
-version = "3.0.4"
+version = "3.0.5"
 license = "AGPL-3.0-or-later"
 repository = "https://github.com/HAWHHCalendarBot/parser"
 authors = ["EdJoPaTo <calendarbot-parser@hawhh.de>"]
@@ -13,7 +13,7 @@ codegen-units = 1
 lto = true
 
 [dependencies]
-chrono = { version = "0.4", features = ["serde"] }
+chrono = { version = "0.4", default-features = false, features = ["clock", "serde"] }
 chrono-tz = "0.8"
 notify = "4"
 serde = { version = "1", features = ["derive"] }
