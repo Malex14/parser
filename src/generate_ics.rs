@@ -1,5 +1,6 @@
 use chrono::{DateTime, FixedOffset};
 use std::collections::hash_map::DefaultHasher;
+use std::fmt::Write;
 use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Hash, PartialEq, Eq)]
@@ -53,8 +54,7 @@ pub fn generate_ics(calendarname: &str, events: &[SoonToBeIcsEvent]) -> String {
     let mut result = String::default();
 
     result += ICS_PREFIX;
-    let calname = format!("X-WR-CALNAME:@HAWHHCalendarBot ({calendarname})\n");
-    result += &calname;
+    writeln!(result, "X-WR-CALNAME:@HAWHHCalendarBot ({calendarname})").unwrap();
     result += ICS_TIMEZONE;
 
     let mut lines: Vec<String> = Vec::new();
