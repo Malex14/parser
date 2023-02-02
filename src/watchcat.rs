@@ -44,11 +44,7 @@ impl Watchcat {
 }
 
 fn get_filename_as_string(path: &Path) -> Option<String> {
-    if let Some(filename) = path.file_name() {
-        if let Some(string) = filename.to_str() {
-            return Some(string.to_owned());
-        }
-    }
-
-    None
+    path.file_name()
+        .and_then(std::ffi::OsStr::to_str)
+        .map(std::borrow::ToOwned::to_owned)
 }
