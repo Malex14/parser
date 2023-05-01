@@ -35,7 +35,7 @@ fn get_existing_files() -> Result<Vec<String>, std::io::Error> {
         let filename = maybe_entry?
             .file_name()
             .into_string()
-            .expect("filename contains something that can not be read easily with rust");
+            .expect("filename should be UTF8");
 
         #[allow(clippy::case_sensitive_file_extension_comparisons)]
         if filename.ends_with(".json") {

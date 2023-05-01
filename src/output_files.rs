@@ -179,7 +179,7 @@ fn get_existing_files(starts_with: &str) -> Result<Vec<String>, std::io::Error> 
         let filename = maybe_entry?
             .file_name()
             .into_string()
-            .expect("filename contains something that can not be read easily with rust");
+            .expect("filename should be UTF8");
 
         if filename.starts_with(starts_with) {
             list.push(filename);

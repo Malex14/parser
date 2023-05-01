@@ -8,20 +8,21 @@ use std::time::Duration;
 
 mod apply_changes;
 mod apply_details;
-mod build;
 mod changestatus;
 mod events;
 mod generate_ics;
+mod output_files;
 mod userconfig;
 mod userconfigs;
 mod watchcat;
 
 fn main() {
-    build::ensure_directory().unwrap();
+    output_files::ensure_directory().unwrap();
     println!("Begin build all configs...");
 
-    let all = userconfigs::load_all().expect("failed to load all userconfigs");
-    let changes = build::all_remove_rest(&all).expect("failed to build all initial userconfigs");
+    let all = userconfigs::load_all().expect("should be able to load all userconfigs");
+    let changes = output_files::all_remove_rest(&all)
+        .expect("should be able to build all initial userconfigs");
     println!(
         "{}",
         create_change_summary(&changes, &changestatus::SHOW_ALL)
@@ -60,7 +61,7 @@ fn main() {
 
 fn do_all() -> Result<String, String> {
     let all = userconfigs::load_all()?;
-    let changes = build::all_remove_rest(&all)?;
+    let changes = output_files::all_remove_rest(&all)?;
     Ok(create_change_summary(
         &changes,
         &changestatus::SHOW_INTERESTING,
@@ -69,5 +70,5 @@ fn do_all() -> Result<String, String> {
 
 fn do_specific(userconfig_filename: &str) -> Result<Changestatus, String> {
     let config = userconfigs::load_specific(userconfig_filename)?;
-    build::one(&config)
+    output_files::one(&config)
 }

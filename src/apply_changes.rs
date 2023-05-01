@@ -50,7 +50,7 @@ fn apply_change(
         });
     } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change_date)
     {
-        let mut event = &mut events[i];
+        let event = &mut events[i];
         if change.remove {
             match removed_events {
                 RemovedEvents::Cancelled => event.status = EventStatus::Cancelled,
