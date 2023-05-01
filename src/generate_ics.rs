@@ -46,83 +46,82 @@ END:STANDARD
 END:VTIMEZONE
 "#;
 
-const ICS_SUFFIX: &str = r#"
-END:VCALENDAR
-"#;
+const ICS_SUFFIX: &str = "END:VCALENDAR\n";
 
 pub fn generate_ics(calendarname: &str, events: &[SoonToBeIcsEvent]) -> String {
     let mut result = String::default();
 
     result += ICS_PREFIX;
-    writeln!(result, "X-WR-CALNAME:@HAWHHCalendarBot ({calendarname})").unwrap();
+    _ = writeln!(result, "X-WR-CALNAME:@HAWHHCalendarBot ({calendarname})");
     result += ICS_TIMEZONE;
 
-    let mut lines: Vec<String> = Vec::new();
     for event in events {
-        lines.push(event_as_ics_vevent_string(event));
+        event_as_ics_vevent_string(&mut result, event);
     }
-    result += &lines.join("\n");
 
     result += ICS_SUFFIX;
 
     result.replace('\n', "\r\n")
 }
 
-fn event_as_ics_vevent_string(event: &SoonToBeIcsEvent) -> String {
-    let mut lines: Vec<String> = Vec::with_capacity(12);
+fn event_as_ics_vevent_string(output: &mut String, event: &SoonToBeIcsEvent) {
+    *output += "BEGIN:VEVENT\n";
+    *output += "TRANSP:OPAQUE\n";
 
-    lines.push("BEGIN:VEVENT".to_owned());
-    lines.push("TRANSP:OPAQUE".to_owned());
-
-    lines.push(format!(
+    _ = writeln!(
+        output,
         "STATUS:{}",
         match event.status {
             EventStatus::Confirmed => "CONFIRMED",
             EventStatus::Cancelled => "CANCELLED",
         }
         .to_owned()
-    ));
+    );
 
-    lines.push(format!(
+    _ = writeln!(
+        output,
         "SUMMARY:{}",
         string_to_ical_escaped_text(&event.pretty_name)
-    ));
-    lines.push(format!(
+    );
+    _ = writeln!(
+        output,
         "DTSTART;TZID=Europe/Berlin:{}",
         date_to_ics_date(&event.start_time)
-    ));
-    lines.push(format!(
+    );
+    _ = writeln!(
+        output,
         "DTEND;TZID=Europe/Berlin:{}",
         date_to_ics_date(&event.end_time)
-    ));
+    );
 
     if !event.location.is_empty() {
-        lines.push(format!(
+        _ = writeln!(
+            output,
             "LOCATION:{}",
             string_to_ical_escaped_text(&event.location)
-        ));
+        );
     }
 
     if !event.description.is_empty() {
-        lines.push(format!(
+        _ = writeln!(
+            output,
             "DESCRIPTION:{}",
             string_to_ical_escaped_text(&event.description)
-        ));
+        );
     }
 
-    lines.push("URL;VALUE=URI:https://telegram.me/HAWHHCalendarBot".to_owned());
-    lines.push(format!(
+    *output += "URL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\n";
+    _ = writeln!(
+        output,
         "UID:{}@calendarbot.hawhh.de",
         calculate_event_hash(event)
-    ));
+    );
 
     if let Some(minutes_before) = event.alert_minutes_before {
-        lines.push(create_valarm(minutes_before));
+        create_valarm(output, minutes_before);
     }
 
-    lines.push("END:VEVENT".to_owned());
-
-    lines.join("\n")
+    *output += "END:VEVENT\n";
 }
 
 /// escape according to <https://www.kanzaki.com/docs/ical/text.html>
@@ -148,11 +147,12 @@ fn date_to_ics_date(date: &DateTime<FixedOffset>) -> String {
 }
 
 /// <https://www.kanzaki.com/docs/ical/valarm.html>
-fn create_valarm(minutes_before: u16) -> String {
-    format!(
+fn create_valarm(output: &mut String, minutes_before: u16) {
+    _ = writeln!(
+        output,
         "BEGIN:VALARM\nTRIGGER:-PT{}\nACTION:AUDIO\nEND:VALARM",
         minutes_to_ical_duration(minutes_before)
-    )
+    );
 }
 
 /// <https://www.kanzaki.com/docs/ical/duration-t.html>
@@ -188,19 +188,21 @@ fn create_minimal_event_vevent() {
         location: String::new(),
     };
 
-    let result = event_as_ics_vevent_string(&event);
-
+    let mut result = String::new();
+    event_as_ics_vevent_string(&mut result, &event);
     assert_eq!(
         result,
-        "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:1e64a94de608b194@calendarbot.hawhh.de\nEND:VEVENT"
+        "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:1e64a94de608b194@calendarbot.hawhh.de\nEND:VEVENT\n"
     );
 }
 
 #[test]
 fn create_valarm_example() {
+    let mut output = String::new();
+    create_valarm(&mut output, 10);
     assert_eq!(
-        create_valarm(10),
-        "BEGIN:VALARM\nTRIGGER:-PT10M\nACTION:AUDIO\nEND:VALARM"
+        output,
+        "BEGIN:VALARM\nTRIGGER:-PT10M\nACTION:AUDIO\nEND:VALARM\n"
     );
 }
 
