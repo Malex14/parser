@@ -17,7 +17,7 @@ mod userconfigs;
 mod watchcat;
 
 fn main() {
-    output_files::ensure_directory().unwrap();
+    output_files::ensure_directory().expect("should be able to create output directory");
     println!("Begin build all configs...");
 
     let all = userconfigs::load_all().expect("should be able to load all userconfigs");
