@@ -30,8 +30,8 @@ fn main() {
 
     println!("Finished building all configs. Engage watchcats...\n");
 
-    let event_watcher = Watchcat::new(events::FOLDER).unwrap();
-    let userconfig_watcher = Watchcat::new(userconfigs::FOLDER).unwrap();
+    let event_watcher = Watchcat::new(events::FOLDER);
+    let userconfig_watcher = Watchcat::new(userconfigs::FOLDER);
 
     loop {
         let mut event_changes = event_watcher.get_changed_filenames();
