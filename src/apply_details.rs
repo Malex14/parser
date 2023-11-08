@@ -21,8 +21,14 @@ fn create_event(description: &str) -> SoonToBeIcsEvent {
         name: "BTI5-VSP/01".to_owned(),
         pretty_name: "BTI5-VSP/01".to_owned(),
         status: crate::generate_ics::EventStatus::Confirmed,
-        start_time: chrono::DateTime::parse_from_rfc3339("2020-04-02T08:15:00+02:00").unwrap(),
-        end_time: chrono::DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
+        start_time: chrono::NaiveDate::from_ymd_opt(2020, 4, 2)
+            .unwrap()
+            .and_hms_opt(8, 15, 0)
+            .unwrap(),
+        end_time: chrono::NaiveDate::from_ymd_opt(2020, 4, 2)
+            .unwrap()
+            .and_hms_opt(11, 15, 0)
+            .unwrap(),
         alert_minutes_before: None,
         description: description.to_owned(),
         location: String::new(),

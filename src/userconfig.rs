@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, FixedOffset, NaiveDateTime, NaiveTime, TimeZone};
+use chrono::{NaiveDateTime, NaiveTime, TimeZone};
 use chrono_tz::Europe::Berlin;
 use serde::de::Visitor;
 use serde::Deserialize;
@@ -52,7 +52,9 @@ pub struct Userconfig {
 #[derive(Deserialize, Debug)]
 pub struct Change {
     pub name: String,
-    pub date: String,
+
+    #[serde(deserialize_with = "deserialize_change_date")]
+    pub date: NaiveDateTime,
 
     #[serde(default)]
     pub add: bool,
@@ -120,20 +122,26 @@ where
     Ok(Some(time))
 }
 
-pub fn parse_change_date(raw: &str) -> Result<DateTime<FixedOffset>, String> {
+fn deserialize_change_date<'de, D>(deserializer: D) -> Result<NaiveDateTime, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let raw = String::deserialize(deserializer)?;
+    parse_change_date(&raw).map_err(serde::de::Error::custom)
+}
+
+fn parse_change_date(raw: &str) -> Result<NaiveDateTime, chrono::ParseError> {
     let tless = raw.replace('T', " ");
-    let naive = NaiveDateTime::parse_from_str(&tless, "%Y-%m-%d %H:%M")
-        .map_err(|err| format!("parse_datetime failed naive {raw} Error: {err}"))?;
-    let date_time = Berlin.from_utc_datetime(&naive);
-    let fixed_offset = DateTime::parse_from_rfc3339(&date_time.to_rfc3339())
-        .map_err(|err| format!("parse_datetime failed fixed_offset {raw} Error: {err}"))?;
-    Ok(fixed_offset)
+    let utc = NaiveDateTime::parse_from_str(&tless, "%Y-%m-%d %H:%M")?;
+    let date_time = Berlin.from_utc_datetime(&utc);
+    let naive = date_time.naive_local();
+    Ok(naive)
 }
 
 #[test]
 fn can_parse_change_date_from_utc_to_local() {
     let actual = parse_change_date("2020-07-01T06:30").unwrap();
-    let string = actual.to_rfc3339();
+    let string = actual.and_local_timezone(Berlin).unwrap().to_rfc3339();
     assert_eq!(string, "2020-07-01T08:30:00+02:00");
 }
 
@@ -209,7 +217,13 @@ fn can_deserialize_userconfig_with_event_map() -> Result<(), serde_json::Error> 
 fn can_deserialize_minimal_change() -> Result<(), serde_json::Error> {
     let test: Change = serde_json::from_str(r#"{"name": "Tree", "date": "2020-12-20T22:04"}"#)?;
     assert_eq!(test.name, "Tree");
-    assert_eq!(test.date, "2020-12-20T22:04");
+    assert_eq!(
+        test.date,
+        chrono::NaiveDate::from_ymd_opt(2020, 12, 20)
+            .unwrap()
+            .and_hms_opt(23, 4, 0)
+            .unwrap()
+    );
     assert!(!test.add);
     assert!(!test.remove);
     assert_eq!(test.starttime, None);
@@ -224,7 +238,13 @@ fn can_deserialize_change_remove() -> Result<(), serde_json::Error> {
     let test: Change =
         serde_json::from_str(r#"{"name": "Tree", "date": "2020-12-20T22:04", "remove": true}"#)?;
     assert_eq!(test.name, "Tree");
-    assert_eq!(test.date, "2020-12-20T22:04");
+    assert_eq!(
+        test.date,
+        chrono::NaiveDate::from_ymd_opt(2020, 12, 20)
+            .unwrap()
+            .and_hms_opt(23, 4, 0)
+            .unwrap()
+    );
     assert!(!test.add);
     assert!(test.remove);
     assert_eq!(test.starttime, None);
@@ -240,7 +260,13 @@ fn can_deserialize_change_add() -> Result<(), serde_json::Error> {
         r#"{"name": "Tree", "date": "2020-12-20T22:04", "add": true, "endtime": "23:42"}"#,
     )?;
     assert_eq!(test.name, "Tree");
-    assert_eq!(test.date, "2020-12-20T22:04");
+    assert_eq!(
+        test.date,
+        chrono::NaiveDate::from_ymd_opt(2020, 12, 20)
+            .unwrap()
+            .and_hms_opt(23, 4, 0)
+            .unwrap()
+    );
     assert!(test.add);
     assert!(!test.remove);
     assert_eq!(test.starttime, None);

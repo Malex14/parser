@@ -34,8 +34,8 @@ impl TryFrom<EventEntry> for SoonToBeIcsEvent {
 
     fn try_from(event: EventEntry) -> Result<Self, Self::Error> {
         Ok(Self {
-            start_time: event.start_time,
-            end_time: event.end_time,
+            start_time: event.start_time.naive_local(),
+            end_time: event.end_time.naive_local(),
             name: event.name.clone(),
             pretty_name: event.name,
             status: EventStatus::Confirmed,

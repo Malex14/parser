@@ -1,4 +1,4 @@
-use chrono::{DateTime, FixedOffset};
+use chrono::NaiveDateTime;
 use std::collections::hash_map::DefaultHasher;
 use std::fmt::Write;
 use std::hash::{Hash, Hasher};
@@ -14,8 +14,8 @@ pub struct SoonToBeIcsEvent {
     pub name: String,
     pub pretty_name: String,
     pub status: EventStatus,
-    pub start_time: DateTime<FixedOffset>,
-    pub end_time: DateTime<FixedOffset>,
+    pub start_time: NaiveDateTime,
+    pub end_time: NaiveDateTime,
     pub alert_minutes_before: Option<u16>,
     pub description: String,
     pub location: String,
@@ -86,12 +86,12 @@ fn event_as_ics_vevent_string(output: &mut String, event: &SoonToBeIcsEvent) {
     _ = writeln!(
         output,
         "DTSTART;TZID=Europe/Berlin:{}",
-        date_to_ics_date(&event.start_time)
+        date_to_ics_date(event.start_time)
     );
     _ = writeln!(
         output,
         "DTEND;TZID=Europe/Berlin:{}",
-        date_to_ics_date(&event.end_time)
+        date_to_ics_date(event.end_time)
     );
 
     if !event.location.is_empty() {
@@ -142,7 +142,7 @@ fn calculate_hash<T: Hash>(t: &T) -> u64 {
     s.finish()
 }
 
-fn date_to_ics_date(date: &DateTime<FixedOffset>) -> String {
+fn date_to_ics_date(date: NaiveDateTime) -> String {
     date.format("%Y%m%d %H%M%S").to_string().replace(' ', "T")
 }
 
@@ -170,8 +170,11 @@ fn minutes_to_ical_duration(minutes_before: u16) -> String {
 
 #[test]
 fn parse_ics_date() {
-    let date = DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap();
-    let result = date_to_ics_date(&date);
+    let date = chrono::NaiveDate::from_ymd_opt(2020, 8, 22)
+        .unwrap()
+        .and_hms_opt(8, 30, 0)
+        .unwrap();
+    let result = date_to_ics_date(date);
     assert_eq!(result, "20200822T083000");
 }
 
@@ -181,8 +184,14 @@ fn create_minimal_event_vevent() {
         name: "BTI5-VS".to_owned(),
         pretty_name: "BTI5-VS".to_owned(),
         status: EventStatus::Cancelled,
-        start_time: DateTime::parse_from_rfc3339("2020-08-22T08:30:00+02:00").unwrap(),
-        end_time: DateTime::parse_from_rfc3339("2020-08-22T11:30:00+02:00").unwrap(),
+        start_time: chrono::NaiveDate::from_ymd_opt(2020, 8, 22)
+            .unwrap()
+            .and_hms_opt(8, 30, 0)
+            .unwrap(),
+        end_time: chrono::NaiveDate::from_ymd_opt(2020, 8, 22)
+            .unwrap()
+            .and_hms_opt(11, 30, 0)
+            .unwrap(),
         alert_minutes_before: None,
         description: String::new(),
         location: String::new(),
@@ -192,7 +201,7 @@ fn create_minimal_event_vevent() {
     event_as_ics_vevent_string(&mut result, &event);
     assert_eq!(
         result,
-        "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:1e64a94de608b194@calendarbot.hawhh.de\nEND:VEVENT\n"
+        "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:dbbd48a01ce77b8c@calendarbot.hawhh.de\nEND:VEVENT\n"
     );
 }
 

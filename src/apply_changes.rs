@@ -1,7 +1,7 @@
 #![allow(clippy::non_ascii_literal)]
 
 use crate::generate_ics::{EventStatus, SoonToBeIcsEvent};
-use crate::userconfig::{self, Change, RemovedEvents};
+use crate::userconfig::{Change, RemovedEvents};
 
 pub fn apply_changes(
     events: &mut Vec<SoonToBeIcsEvent>,
@@ -15,23 +15,18 @@ pub fn apply_changes(
     Ok(())
 }
 
+#[allow(clippy::suspicious_operation_groupings)]
 fn apply_change(
     events: &mut Vec<SoonToBeIcsEvent>,
     change: Change,
     removed_events: RemovedEvents,
 ) -> Result<(), String> {
     let mut iter = events.iter();
-    let change_date = userconfig::parse_change_date(&change.date)
-        .map_err(|err| format!("failed to parse change date {} Error: {err}", change.date))?;
     if change.add {
         let end_time = change
             .endtime
-            .ok_or("parse change add has no end_time specified")?;
-        let end_time = change_date
-            .date_naive()
-            .and_time(end_time)
-            .and_local_timezone(change_date.timezone())
-            .unwrap();
+            .ok_or("change add has no end_time specified")?;
+        let end_time = change.date.date().and_time(end_time);
 
         #[allow(clippy::option_if_let_else)]
         events.push(SoonToBeIcsEvent {
@@ -42,13 +37,13 @@ fn apply_change(
             },
             name: change.name,
             status: EventStatus::Confirmed,
-            start_time: change_date,
+            start_time: change.date,
             end_time,
             alert_minutes_before: None,
             description: "Dies ist eine zusätzliche Veranstaltung welche manuell von dir über den Telegram Bot hinzufügt wurde.".to_owned(),
             location: change.room.unwrap_or_default(),
         });
-    } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change_date)
+    } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change.date)
     {
         let event = &mut events[i];
         if change.remove {
@@ -71,19 +66,11 @@ fn apply_change(
         }
 
         if let Some(time) = change.starttime {
-            event.start_time = change_date
-                .date_naive()
-                .and_time(time)
-                .and_local_timezone(change_date.timezone())
-                .unwrap();
+            event.start_time = change.date.date().and_time(time);
         }
 
         if let Some(time) = change.endtime {
-            event.end_time = change_date
-                .date_naive()
-                .and_time(time)
-                .and_local_timezone(change_date.timezone())
-                .unwrap();
+            event.end_time = change.date.date().and_time(time);
         }
     } else {
         // Event for this change doesnt exist.
@@ -100,8 +87,14 @@ fn generate_events() -> Vec<SoonToBeIcsEvent> {
             name: "BTI5-VSP/01".to_owned(),
             pretty_name: "BTI5-VSP/01".to_owned(),
             status: EventStatus::Confirmed,
-            start_time: chrono::DateTime::parse_from_rfc3339("2020-04-02T08:15:00+02:00").unwrap(),
-            end_time: chrono::DateTime::parse_from_rfc3339("2020-04-02T11:15:00+02:00").unwrap(),
+            start_time: chrono::NaiveDate::from_ymd_opt(2020, 4, 2)
+                .unwrap()
+                .and_hms_opt(8, 15, 0)
+                .unwrap(),
+            end_time: chrono::NaiveDate::from_ymd_opt(2020, 4, 2)
+                .unwrap()
+                .and_hms_opt(11, 15, 0)
+                .unwrap(),
             alert_minutes_before: None,
             description: String::new(),
             location: String::new(),
@@ -110,8 +103,14 @@ fn generate_events() -> Vec<SoonToBeIcsEvent> {
             name: "BTI5-VSP/01".to_owned(),
             pretty_name: "BTI5-VSP/01".to_owned(),
             status: EventStatus::Confirmed,
-            start_time: chrono::DateTime::parse_from_rfc3339("2020-05-14T08:15:00+02:00").unwrap(),
-            end_time: chrono::DateTime::parse_from_rfc3339("2020-05-14T11:15:00+02:00").unwrap(),
+            start_time: chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+                .unwrap()
+                .and_hms_opt(8, 15, 0)
+                .unwrap(),
+            end_time: chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+                .unwrap()
+                .and_hms_opt(11, 15, 0)
+                .unwrap(),
             alert_minutes_before: None,
             description: String::new(),
             location: String::new(),
@@ -124,7 +123,10 @@ fn non_existing_event_of_change_is_skipped() {
     let mut events = generate_events();
     let change = Change {
         name: "BTI5-VS".to_owned(),
-        date: "2020-05-15T13:37".to_owned(),
+        date: chrono::NaiveDate::from_ymd_opt(2020, 5, 15)
+            .unwrap()
+            .and_hms_opt(13, 37, 0)
+            .unwrap(),
         add: false,
         remove: true,
         starttime: None,
@@ -145,7 +147,10 @@ fn remove_event_is_removed_completly() {
     let mut events = generate_events();
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
-        date: "2020-05-14T06:15".to_owned(),
+        date: chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+            .unwrap()
+            .and_hms_opt(8, 15, 0)
+            .unwrap(),
         add: false,
         remove: true,
         starttime: None,
@@ -162,7 +167,10 @@ fn remove_event_gets_marked_as_cancelled() {
     let mut events = generate_events();
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
-        date: "2020-05-14T06:15".to_owned(),
+        date: chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+            .unwrap()
+            .and_hms_opt(8, 15, 0)
+            .unwrap(),
         add: false,
         remove: true,
         starttime: None,
@@ -180,7 +188,10 @@ fn remove_event_gets_emoji_prefix() {
     let mut events = generate_events();
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
-        date: "2020-05-14T06:15".to_owned(),
+        date: chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+            .unwrap()
+            .and_hms_opt(8, 15, 0)
+            .unwrap(),
         add: false,
         remove: true,
         starttime: None,
@@ -198,7 +209,10 @@ fn namesuffix_is_added() {
     let mut events = generate_events();
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
-        date: "2020-05-14T06:15".to_owned(),
+        date: chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+            .unwrap()
+            .and_hms_opt(8, 15, 0)
+            .unwrap(),
         add: false,
         remove: false,
         starttime: None,
@@ -215,7 +229,10 @@ fn room_is_overwritten() {
     let mut events = generate_events();
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
-        date: "2020-05-14T06:15".to_owned(),
+        date: chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+            .unwrap()
+            .and_hms_opt(8, 15, 0)
+            .unwrap(),
         add: false,
         remove: false,
         starttime: None,
@@ -232,7 +249,10 @@ fn starttime_changed() {
     let mut events = generate_events();
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
-        date: "2020-05-14T06:15".to_owned(),
+        date: chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+            .unwrap()
+            .and_hms_opt(8, 15, 0)
+            .unwrap(),
         add: false,
         remove: false,
         starttime: Some(chrono::NaiveTime::from_hms_opt(8, 30, 0).unwrap()),
@@ -242,8 +262,11 @@ fn starttime_changed() {
     };
     apply_change(&mut events, change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(
-        events[1].start_time.to_rfc3339(),
-        "2020-05-14T08:30:00+02:00"
+        events[1].start_time,
+        chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+            .unwrap()
+            .and_hms_opt(8, 30, 0)
+            .unwrap()
     );
 }
 
@@ -252,7 +275,10 @@ fn endtime_changed() {
     let mut events = generate_events();
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
-        date: "2020-05-14T06:15".to_owned(),
+        date: chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+            .unwrap()
+            .and_hms_opt(8, 15, 0)
+            .unwrap(),
         add: false,
         remove: false,
         starttime: None,
@@ -261,7 +287,13 @@ fn endtime_changed() {
         room: None,
     };
     apply_change(&mut events, change, RemovedEvents::Cancelled).unwrap();
-    assert_eq!(events[1].end_time.to_rfc3339(), "2020-05-14T08:30:00+02:00");
+    assert_eq!(
+        events[1].end_time,
+        chrono::NaiveDate::from_ymd_opt(2020, 5, 14)
+            .unwrap()
+            .and_hms_opt(8, 30, 0)
+            .unwrap()
+    );
 }
 
 #[test]
@@ -269,7 +301,10 @@ fn event_added() {
     let mut events = generate_events();
     let change = Change {
         name: "BTI5-VSP/01".to_owned(),
-        date: "2020-05-30T08:00".to_owned(),
+        date: chrono::NaiveDate::from_ymd_opt(2020, 5, 30)
+            .unwrap()
+            .and_hms_opt(10, 0, 0)
+            .unwrap(),
         add: true,
         remove: false,
         starttime: None,
@@ -281,9 +316,18 @@ fn event_added() {
     assert_eq!(events.len(), 3);
     assert_eq!(events[2].name, "BTI5-VSP/01");
     assert_eq!(
-        events[2].start_time.to_rfc3339(),
-        "2020-05-30T10:00:00+02:00"
+        events[2].start_time,
+        chrono::NaiveDate::from_ymd_opt(2020, 5, 30)
+            .unwrap()
+            .and_hms_opt(10, 0, 0)
+            .unwrap()
     );
-    assert_eq!(events[2].end_time.to_rfc3339(), "2020-05-30T10:30:00+02:00");
+    assert_eq!(
+        events[2].end_time,
+        chrono::NaiveDate::from_ymd_opt(2020, 5, 30)
+            .unwrap()
+            .and_hms_opt(10, 30, 0)
+            .unwrap()
+    );
     assert_eq!(events[2].location, "");
 }
