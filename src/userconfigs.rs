@@ -13,11 +13,10 @@ pub fn load_specific(filename: &str) -> Result<UserconfigFile, String> {
     Ok(parsed)
 }
 
-pub fn load_all() -> Result<Vec<UserconfigFile>, String> {
+pub fn load_all() -> Vec<UserconfigFile> {
     let mut successful: Vec<UserconfigFile> = Vec::new();
 
-    let existing_files = get_existing_files()
-        .map_err(|err| format!("failed to get existing userconfig files from dir {err}"))?;
+    let existing_files = get_existing_files().expect("should be able to read userconfig directory");
 
     for filename in existing_files {
         match load_specific(&filename) {
@@ -26,7 +25,7 @@ pub fn load_all() -> Result<Vec<UserconfigFile>, String> {
         }
     }
 
-    Ok(successful)
+    successful
 }
 
 fn get_existing_files() -> Result<Vec<String>, std::io::Error> {

@@ -20,7 +20,7 @@ fn main() {
     output_files::ensure_directory().expect("should be able to create output directory");
     println!("Begin build all configs...");
 
-    let all = userconfigs::load_all().expect("should be able to load all userconfigs");
+    let all = userconfigs::load_all();
     let changes = output_files::all_remove_rest(&all)
         .expect("should be able to build all initial userconfigs");
     println!(
@@ -60,7 +60,7 @@ fn main() {
 }
 
 fn do_all() -> Result<String, String> {
-    let all = userconfigs::load_all()?;
+    let all = userconfigs::load_all();
     let changes = output_files::all_remove_rest(&all)?;
     Ok(create_change_summary(
         &changes,
