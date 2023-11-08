@@ -59,7 +59,9 @@ fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
     }
 
     let mut user_events = Vec::new();
-    for name in content.config.events.keys() {
+    let mut event_keys = content.config.events.keys().collect::<Vec<_>>();
+    event_keys.sort();
+    for name in event_keys {
         match load_and_parse_events(name) {
             Ok(mut events) => user_events.append(&mut events),
             Err(err) => println!("skip event {name:32} {err}"),
