@@ -37,7 +37,6 @@ fn main() {
         let mut event_changes = event_watcher.get_changed_filenames();
         if !event_changes.is_empty() {
             println!("eventfile change detected... ");
-            sleep(Duration::from_secs(15));
             event_changes.append(&mut event_watcher.get_changed_filenames());
             println!("changed ({:3}): {event_changes:?}", event_changes.len());
 
