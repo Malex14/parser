@@ -21,13 +21,13 @@ pub struct SoonToBeIcsEvent {
     pub location: String,
 }
 
-const ICS_PREFIX: &str = r"BEGIN:VCALENDAR
+const ICS_PREFIX: &str = "BEGIN:VCALENDAR
 VERSION:2.0
 METHOD:PUBLISH
 PRODID:https://calendarbot.hawhh.de
 ";
 
-const ICS_TIMEZONE: &str = r"BEGIN:VTIMEZONE
+const ICS_TIMEZONE: &str = "BEGIN:VTIMEZONE
 TZID:Europe/Berlin
 BEGIN:DAYLIGHT
 TZOFFSETFROM:+0100
