@@ -5,7 +5,7 @@ use crate::userconfig::{self, Change, RemovedEvents};
 
 pub fn apply_changes(
     events: &mut Vec<SoonToBeIcsEvent>,
-    changes: &[Change],
+    changes: Vec<Change>,
     removed_events: RemovedEvents,
 ) -> Result<(), String> {
     for change in changes {
@@ -17,7 +17,7 @@ pub fn apply_changes(
 
 fn apply_change(
     events: &mut Vec<SoonToBeIcsEvent>,
-    change: &Change,
+    change: Change,
     removed_events: RemovedEvents,
 ) -> Result<(), String> {
     let mut iter = events.iter();
@@ -35,18 +35,18 @@ fn apply_change(
 
         #[allow(clippy::option_if_let_else)]
         events.push(SoonToBeIcsEvent {
-            name: change.name.clone(),
-            pretty_name: if let Some(namesuffix) = &change.namesuffix {
+            pretty_name: if let Some(namesuffix) = change.namesuffix {
                 format!("{} {namesuffix}", change.name)
             } else {
                 change.name.clone()
             },
+            name: change.name,
             status: EventStatus::Confirmed,
             start_time: change_date,
             end_time,
             alert_minutes_before: None,
             description: "Dies ist eine zusätzliche Veranstaltung welche manuell von dir über den Telegram Bot hinzufügt wurde.".to_owned(),
-            location: change.room.clone().unwrap_or_default(),
+            location: change.room.unwrap_or_default(),
         });
     } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change_date)
     {
@@ -62,26 +62,26 @@ fn apply_change(
             }
         }
 
-        if let Some(namesuffix) = &change.namesuffix {
+        if let Some(namesuffix) = change.namesuffix {
             event.pretty_name = format!("{} {namesuffix}", event.pretty_name);
         }
 
-        if let Some(room) = &change.room {
-            event.location = room.clone();
+        if let Some(room) = change.room {
+            event.location = room;
         }
 
-        if let Some(time) = &change.starttime {
+        if let Some(time) = change.starttime {
             event.start_time = change_date
                 .date_naive()
-                .and_time(*time)
+                .and_time(time)
                 .and_local_timezone(change_date.timezone())
                 .unwrap();
         }
 
-        if let Some(time) = &change.endtime {
+        if let Some(time) = change.endtime {
             event.end_time = change_date
                 .date_naive()
-                .and_time(*time)
+                .and_time(time)
                 .and_local_timezone(change_date.timezone())
                 .unwrap();
         }
@@ -132,7 +132,7 @@ fn non_existing_event_of_change_is_skipped() {
         namesuffix: None,
         room: None,
     };
-    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events.len(), 2);
 
     let expected = generate_events();
@@ -153,7 +153,7 @@ fn remove_event_is_removed_completly() {
         namesuffix: None,
         room: None,
     };
-    apply_change(&mut events, &change, RemovedEvents::Removed).unwrap();
+    apply_change(&mut events, change, RemovedEvents::Removed).unwrap();
     assert_eq!(events.len(), 1);
 }
 
@@ -170,7 +170,7 @@ fn remove_event_gets_marked_as_cancelled() {
         namesuffix: None,
         room: None,
     };
-    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events.len(), 2);
     assert_eq!(events[1].status, EventStatus::Cancelled);
 }
@@ -188,7 +188,7 @@ fn remove_event_gets_emoji_prefix() {
         namesuffix: None,
         room: None,
     };
-    apply_change(&mut events, &change, RemovedEvents::Emoji).unwrap();
+    apply_change(&mut events, change, RemovedEvents::Emoji).unwrap();
     assert_eq!(events.len(), 2);
     assert_eq!(events[1].pretty_name, "🚫 BTI5-VSP/01");
 }
@@ -206,7 +206,7 @@ fn namesuffix_is_added() {
         namesuffix: Some("whatever".to_owned()),
         room: None,
     };
-    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].pretty_name, "BTI5-VSP/01 whatever");
 }
 
@@ -223,7 +223,7 @@ fn room_is_overwritten() {
         namesuffix: None,
         room: Some("whereever".to_owned()),
     };
-    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].location, "whereever");
 }
 
@@ -240,7 +240,7 @@ fn starttime_changed() {
         namesuffix: None,
         room: None,
     };
-    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(
         events[1].start_time.to_rfc3339(),
         "2020-05-14T08:30:00+02:00"
@@ -260,7 +260,7 @@ fn endtime_changed() {
         namesuffix: None,
         room: None,
     };
-    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events[1].end_time.to_rfc3339(), "2020-05-14T08:30:00+02:00");
 }
 
@@ -277,7 +277,7 @@ fn event_added() {
         namesuffix: None,
         room: None,
     };
-    apply_change(&mut events, &change, RemovedEvents::Cancelled).unwrap();
+    apply_change(&mut events, change, RemovedEvents::Cancelled).unwrap();
     assert_eq!(events.len(), 3);
     assert_eq!(events[2].name, "BTI5-VSP/01");
     assert_eq!(

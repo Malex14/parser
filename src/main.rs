@@ -21,7 +21,7 @@ fn main() {
     println!("Begin build all configs...");
 
     let all = userconfigs::load_all();
-    let changes = output_files::all_remove_rest(&all)
+    let changes = output_files::all_remove_rest(all)
         .expect("should be able to build all initial userconfigs");
     println!(
         "{}",
@@ -60,7 +60,7 @@ fn main() {
 
 fn do_all() -> Result<String, String> {
     let all = userconfigs::load_all();
-    let changes = output_files::all_remove_rest(&all)?;
+    let changes = output_files::all_remove_rest(all)?;
     Ok(create_change_summary(
         &changes,
         &changestatus::SHOW_INTERESTING,
@@ -69,5 +69,5 @@ fn do_all() -> Result<String, String> {
 
 fn do_specific(userconfig_filename: &str) -> Result<Changestatus, String> {
     let config = userconfigs::load_specific(userconfig_filename)?;
-    output_files::one(&config)
+    output_files::one(config)
 }

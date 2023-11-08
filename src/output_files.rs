@@ -20,14 +20,14 @@ pub fn ensure_directory() -> Result<(), std::io::Error> {
     fs::create_dir_all(FOLDER)
 }
 
-pub fn one(content: &UserconfigFile) -> Result<Changestatus, String> {
+pub fn one(content: UserconfigFile) -> Result<Changestatus, String> {
     Ok(one_internal(content)?.changestatus)
 }
 
-fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
+fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
     let user_id = content.chat.id;
-    let first_name = &content.chat.first_name;
-    let ics_filename = format!("{user_id}-{}.ics", &content.config.calendarfile_suffix);
+    let first_name = content.chat.first_name;
+    let ics_filename = format!("{user_id}-{}.ics", content.config.calendarfile_suffix);
     let path = Path::new(FOLDER).join(&ics_filename);
 
     let mut changetype = Changetype::Same;
@@ -79,7 +79,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
         return Ok(Buildresult {
             filename: ics_filename,
             changestatus: Changestatus {
-                name: first_name.clone(),
+                name: first_name,
                 changetype,
             },
         });
@@ -87,7 +87,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
 
     apply_changes(
         &mut user_events,
-        &content.config.changes,
+        content.config.changes,
         content.config.removed_events,
     )
     .map_err(|err| {
@@ -100,7 +100,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
     }
 
     user_events.sort_by_cached_key(|event| event.start_time);
-    let ics_content = generate_ics(first_name, &user_events);
+    let ics_content = generate_ics(&first_name, &user_events);
 
     if let Ok(current_content) = fs::read_to_string(&path) {
         if ics_content != current_content {
@@ -119,7 +119,7 @@ fn one_internal(content: &UserconfigFile) -> Result<Buildresult, String> {
     Ok(Buildresult {
         filename: ics_filename,
         changestatus: Changestatus {
-            name: first_name.clone(),
+            name: first_name,
             changetype,
         },
     })
@@ -134,38 +134,36 @@ fn load_and_parse_events(name: &str) -> Result<Vec<SoonToBeIcsEvent>, String> {
     Ok(result)
 }
 
-pub fn all_remove_rest(list: &[UserconfigFile]) -> Result<Vec<Changestatus>, String> {
+pub fn all_remove_rest(list: Vec<UserconfigFile>) -> Result<Vec<Changestatus>, String> {
     let mut changestati: Vec<Changestatus> = Vec::new();
     let mut created_files: Vec<String> = Vec::new();
 
     for content in list {
+        let chat_id = content.chat.id;
         match one_internal(content) {
             Ok(filechange) => {
                 changestati.push(filechange.changestatus);
                 created_files.push(filechange.filename);
             }
-            Err(error) => println!(
-                "build for {} {} failed. Error: {error}",
-                content.chat.id, content.chat.first_name
-            ),
+            Err(error) => println!("build for {chat_id} failed. Error: {error}"),
         }
     }
 
     let existing = get_existing_files("")
         .map_err(|err| format!("failed to read calendars dir for cleanup {err}"))?;
 
-    for filename in &existing {
-        if created_files.contains(filename) {
+    for filename in existing {
+        if created_files.contains(&filename) {
             continue;
         }
 
-        let path = Path::new(FOLDER).join(filename);
+        let path = Path::new(FOLDER).join(&filename);
         fs::remove_file(path).map_err(|err| {
             format!("failed to remove superfluous calendar file {filename} Error: {err}")
         })?;
 
         changestati.push(Changestatus {
-            name: filename.clone(),
+            name: filename,
             changetype: Changetype::Removed,
         });
     }
