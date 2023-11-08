@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Changetype {
     Added,
     Changed,
@@ -10,39 +10,47 @@ pub enum Changetype {
     Skipped,
 }
 
+impl Changetype {
+    pub const ALL: &'static [Self] = &[
+        Self::Added,
+        Self::Changed,
+        Self::Moved,
+        Self::Removed,
+        Self::Same,
+        Self::Skipped,
+    ];
+    pub const INTERESTING: &'static [Self] =
+        &[Self::Added, Self::Changed, Self::Moved, Self::Removed];
+
+    const fn as_str(self) -> &'static str {
+        match self {
+            Self::Added => "added",
+            Self::Changed => "changed",
+            Self::Moved => "moved",
+            Self::Removed => "removed",
+            Self::Same => "same",
+            Self::Skipped => "skipped",
+        }
+    }
+}
+
 pub struct Changestatus {
     pub name: String,
     pub changetype: Changetype,
 }
 
-pub const SHOW_ALL: [&str; 6] = ["added", "changed", "moved", "removed", "same", "skipped"];
-pub const SHOW_INTERESTING: [&str; 4] = ["added", "changed", "moved", "removed"];
-
-pub fn create_change_summary(changes: &[Changestatus], to_be_shown: &[&str]) -> String {
-    let mut map: HashMap<&str, Vec<String>> = HashMap::new();
+pub fn create_change_summary(changes: Vec<Changestatus>, to_be_shown: &[Changetype]) -> String {
+    let mut map: HashMap<Changetype, Vec<String>> = HashMap::new();
 
     for change in changes {
-        let key = match change.changetype {
-            Changetype::Added => "added",
-            Changetype::Changed => "changed",
-            Changetype::Moved => "moved",
-            Changetype::Removed => "removed",
-            Changetype::Same => "same",
-            Changetype::Skipped => "skipped",
-        };
-
-        if !map.contains_key(key) {
-            map.insert(key, Vec::new());
-        }
-
-        let vec = map.get_mut(key).unwrap();
-        vec.push(change.name.clone());
+        map.entry(change.changetype).or_default().push(change.name);
     }
 
     let mut lines: Vec<String> = Vec::new();
     for key in to_be_shown {
         if let Some(val) = map.get_mut(key) {
             val.sort_by_key(|o| o.to_lowercase());
+            let key = key.as_str();
             lines.push(format!("{key:7} ({:3}): {val:?}", val.len()));
         }
     }
@@ -82,13 +90,13 @@ fn generate_every_type_once() -> Vec<Changestatus> {
 
 #[test]
 fn summary_without_changes_is_empty() {
-    let result = create_change_summary(&[], &SHOW_ALL);
+    let result = create_change_summary(vec![], Changetype::ALL);
     assert_eq!(result, "");
 }
 
 #[test]
 fn summary_shows_every_type_once() {
-    let result = create_change_summary(&generate_every_type_once(), &SHOW_ALL);
+    let result = create_change_summary(generate_every_type_once(), Changetype::ALL);
     assert_eq!(
         result,
         r#"added   (  1): ["A"]
@@ -102,7 +110,7 @@ skipped (  1): ["Sk"]"#
 
 #[test]
 fn summary_shows_interesting_types_once() {
-    let result = create_change_summary(&generate_every_type_once(), &SHOW_INTERESTING);
+    let result = create_change_summary(generate_every_type_once(), Changetype::INTERESTING);
     assert_eq!(
         result,
         r#"added   (  1): ["A"]

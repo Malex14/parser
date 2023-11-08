@@ -1,7 +1,6 @@
 #![forbid(unsafe_code)]
 
-use crate::changestatus::create_change_summary;
-use crate::changestatus::Changestatus;
+use crate::changestatus::{create_change_summary, Changestatus, Changetype};
 use crate::watchcat::Watchcat;
 use std::thread::sleep;
 use std::time::Duration;
@@ -23,10 +22,7 @@ fn main() {
     let all = userconfigs::load_all();
     let changes = output_files::all_remove_rest(all)
         .expect("should be able to build all initial userconfigs");
-    println!(
-        "{}",
-        create_change_summary(&changes, &changestatus::SHOW_ALL)
-    );
+    println!("{}", create_change_summary(changes, Changetype::ALL));
 
     println!("Finished building all configs. Engage watchcats...\n");
 
@@ -61,10 +57,7 @@ fn main() {
 fn do_all() -> Result<String, String> {
     let all = userconfigs::load_all();
     let changes = output_files::all_remove_rest(all)?;
-    Ok(create_change_summary(
-        &changes,
-        &changestatus::SHOW_INTERESTING,
-    ))
+    Ok(create_change_summary(changes, Changetype::INTERESTING))
 }
 
 fn do_specific(userconfig_filename: &str) -> Result<Changestatus, String> {
