@@ -1,7 +1,8 @@
-use chrono::NaiveDateTime;
 use std::collections::hash_map::DefaultHasher;
 use std::fmt::Write;
 use std::hash::{Hash, Hasher};
+
+use chrono::NaiveDateTime;
 
 #[derive(Debug, Hash, PartialEq, Eq)]
 pub enum EventStatus {

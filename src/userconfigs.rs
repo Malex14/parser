@@ -1,6 +1,7 @@
-use crate::userconfig::UserconfigFile;
 use std::fs;
 use std::path::Path;
+
+use crate::userconfig::UserconfigFile;
 
 pub const FOLDER: &str = "userconfig";
 
