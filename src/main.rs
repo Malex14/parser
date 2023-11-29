@@ -1,9 +1,10 @@
 #![forbid(unsafe_code)]
 
-use crate::changestatus::{create_change_summary, Changestatus, Changetype};
-use crate::watchcat::Watchcat;
 use std::thread::sleep;
 use std::time::Duration;
+
+use crate::changestatus::{write_change_summary, Changestatus, Changetype};
+use crate::watchcat::Watchcat;
 
 mod apply_changes;
 mod apply_details;
@@ -17,12 +18,13 @@ mod watchcat;
 
 fn main() {
     output_files::ensure_directory().expect("should be able to create output directory");
+    let mut stdout = std::io::stdout();
     println!("Begin build all configs...");
 
     let all = userconfigs::load_all();
     let changes = output_files::all_remove_rest(all)
         .expect("should be able to build all initial userconfigs");
-    println!("{}", create_change_summary(changes, Changetype::ALL));
+    _ = write_change_summary(&mut stdout, changes, Changetype::ALL);
 
     println!("Finished building all configs. Engage watchcats...\n");
 
@@ -37,7 +39,9 @@ fn main() {
             println!("changed ({:3}): {event_changes:?}", event_changes.len());
 
             match do_all() {
-                Ok(summary) => println!("{summary}"),
+                Ok(changes) => {
+                    _ = write_change_summary(&mut stdout, changes, Changetype::INTERESTING);
+                }
                 Err(err) => println!("failed to build all {err}"),
             }
         }
@@ -54,10 +58,9 @@ fn main() {
     }
 }
 
-fn do_all() -> Result<String, String> {
+fn do_all() -> Result<Vec<Changestatus>, String> {
     let all = userconfigs::load_all();
-    let changes = output_files::all_remove_rest(all)?;
-    Ok(create_change_summary(changes, Changetype::INTERESTING))
+    output_files::all_remove_rest(all)
 }
 
 fn do_specific(userconfig_filename: &str) -> Result<Changestatus, String> {

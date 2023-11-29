@@ -39,23 +39,23 @@ pub struct Changestatus {
     pub changetype: Changetype,
 }
 
-pub fn create_change_summary(changes: Vec<Changestatus>, to_be_shown: &[Changetype]) -> String {
+pub fn write_change_summary<W: std::io::Write>(
+    target: &mut W,
+    changes: Vec<Changestatus>,
+    to_be_shown: &[Changetype],
+) -> std::io::Result<()> {
     let mut map: HashMap<Changetype, Vec<String>> = HashMap::new();
-
     for change in changes {
         map.entry(change.changetype).or_default().push(change.name);
     }
-
-    let mut lines: Vec<String> = Vec::new();
     for key in to_be_shown {
         if let Some(val) = map.get_mut(key) {
             val.sort_by_key(|o| o.to_lowercase());
             let key = key.as_str();
-            lines.push(format!("{key:7} ({:3}): {val:?}", val.len()));
+            writeln!(target, "{key:7} ({:3}): {val:?}", val.len())?;
         }
     }
-
-    lines.join("\n")
+    Ok(())
 }
 
 #[cfg(test)]
@@ -90,32 +90,42 @@ fn generate_every_type_once() -> Vec<Changestatus> {
 
 #[test]
 fn summary_without_changes_is_empty() {
-    let result = create_change_summary(vec![], Changetype::ALL);
-    assert_eq!(result, "");
+    let mut result = Vec::new();
+    write_change_summary(&mut result, vec![], Changetype::ALL).unwrap();
+    assert_eq!(result, b"");
 }
 
 #[test]
 fn summary_shows_every_type_once() {
-    let result = create_change_summary(generate_every_type_once(), Changetype::ALL);
+    let mut result = Vec::new();
+    write_change_summary(&mut result, generate_every_type_once(), Changetype::ALL).unwrap();
     assert_eq!(
         result,
-        r#"added   (  1): ["A"]
+        br#"added   (  1): ["A"]
 changed (  1): ["C"]
 moved   (  1): ["M"]
 removed (  1): ["R"]
 same    (  1): ["Sa"]
-skipped (  1): ["Sk"]"#
+skipped (  1): ["Sk"]
+"#
     );
 }
 
 #[test]
 fn summary_shows_interesting_types_once() {
-    let result = create_change_summary(generate_every_type_once(), Changetype::INTERESTING);
+    let mut result = Vec::new();
+    write_change_summary(
+        &mut result,
+        generate_every_type_once(),
+        Changetype::INTERESTING,
+    )
+    .unwrap();
     assert_eq!(
         result,
-        r#"added   (  1): ["A"]
+        br#"added   (  1): ["A"]
 changed (  1): ["C"]
 moved   (  1): ["M"]
-removed (  1): ["R"]"#
+removed (  1): ["R"]
+"#
     );
 }
