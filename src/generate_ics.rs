@@ -137,10 +137,10 @@ fn calculate_event_hash(event: &SoonToBeIcsEvent) -> String {
     format!("{:x}", calculate_hash(&event))
 }
 
-fn calculate_hash<T: Hash>(t: &T) -> u64 {
-    let mut s = DefaultHasher::new();
-    t.hash(&mut s);
-    s.finish()
+fn calculate_hash<T: Hash>(hashable: &T) -> u64 {
+    let mut hasher = DefaultHasher::new();
+    hashable.hash(&mut hasher);
+    hasher.finish()
 }
 
 fn date_to_ics_date(date: NaiveDateTime) -> String {

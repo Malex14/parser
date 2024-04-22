@@ -24,8 +24,10 @@ impl Watchcat {
                 let events = result.expect("file system watcher error");
                 let mut paths = events
                     .into_iter()
-                    .filter(|o| matches!(o.kind, EventKind::Create(_) | EventKind::Modify(_)))
-                    .flat_map(|o| o.event.paths)
+                    .filter(|event| {
+                        matches!(event.kind, EventKind::Create(_) | EventKind::Modify(_))
+                    })
+                    .flat_map(|debounced_event| debounced_event.event.paths)
                     .collect::<Vec<_>>();
                 paths.sort();
                 paths.dedup();

@@ -21,7 +21,6 @@ fn apply_change(
     change: Change,
     removed_events: RemovedEvents,
 ) -> Result<(), String> {
-    let mut iter = events.iter();
     if change.add {
         let end_time = change
             .endtime
@@ -43,7 +42,9 @@ fn apply_change(
             description: "Dies ist eine zusätzliche Veranstaltung welche manuell von dir über den Telegram Bot hinzufügt wurde.".to_owned(),
             location: change.room.unwrap_or_default(),
         });
-    } else if let Some(i) = iter.position(|o| o.name == change.name && o.start_time == change.date)
+    } else if let Some(i) = events
+        .iter()
+        .position(|event| event.name == change.name && event.start_time == change.date)
     {
         let event = &mut events[i];
         if change.remove {

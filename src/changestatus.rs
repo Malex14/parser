@@ -50,7 +50,7 @@ pub fn write_change_summary<W: std::io::Write>(
     }
     for key in to_be_shown {
         if let Some(val) = map.get_mut(key) {
-            val.sort_by_key(|o| o.to_lowercase());
+            val.sort_by_key(|string| string.to_lowercase());
             let key = key.as_str();
             writeln!(target, "{key:7} ({:3}): {val:?}", val.len())?;
         }

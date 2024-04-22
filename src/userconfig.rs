@@ -117,8 +117,8 @@ fn deserialize_change_time<'de, D>(deserializer: D) -> Result<Option<NaiveTime>,
 where
     D: serde::Deserializer<'de>,
 {
-    let s = String::deserialize(deserializer)?;
-    let time = NaiveTime::parse_from_str(&s, "%H:%M").map_err(serde::de::Error::custom)?;
+    let str = String::deserialize(deserializer)?;
+    let time = NaiveTime::parse_from_str(&str, "%H:%M").map_err(serde::de::Error::custom)?;
     Ok(Some(time))
 }
 
