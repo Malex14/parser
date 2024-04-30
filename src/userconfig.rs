@@ -17,7 +17,7 @@ pub struct Chat {
     pub first_name: String,
 }
 
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Deserialize)]
+#[derive(Deserialize, Debug, Clone, Copy, Default, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub enum RemovedEvents {
     #[default]

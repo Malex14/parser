@@ -4,13 +4,13 @@ use std::hash::{Hash, Hasher};
 
 use chrono::NaiveDateTime;
 
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum EventStatus {
     Confirmed,
     Cancelled,
 }
 
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct SoonToBeIcsEvent {
     pub name: String,
     pub pretty_name: String,
