@@ -96,8 +96,13 @@ fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
     })?;
 
     for event in &mut user_events {
-        let details = content.config.events.get(&event.name).unwrap();
-        apply_details(event, details);
+        if let Some(details) = content.config.events.get(&event.name) {
+            apply_details(event, details);
+        } else {
+            // IE changed from IE2-IC/01 to IE2-IC-01 for ics files
+            // the old name was used and is not yet updated in the TelegramBot
+            // skip here and wait for the user to update them in the TelegramBot
+        }
     }
 
     user_events.sort_by_cached_key(|event| event.start_time);
@@ -131,7 +136,6 @@ fn load_and_parse_events(name: &str) -> Result<Vec<SoonToBeIcsEvent>, String> {
     for event in events::read(name)? {
         result.push(event.try_into()?);
     }
-
     Ok(result)
 }
 
