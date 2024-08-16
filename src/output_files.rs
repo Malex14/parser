@@ -134,7 +134,7 @@ fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
 fn load_and_parse_events(name: &str) -> Result<Vec<SoonToBeIcsEvent>, String> {
     let mut result = Vec::new();
     for event in events::read(name)? {
-        result.push(event.try_into()?);
+        result.push(event.into());
     }
     Ok(result)
 }

@@ -28,11 +28,9 @@ pub fn read(name: &str) -> Result<Vec<EventEntry>, String> {
     Ok(event_entries)
 }
 
-impl TryFrom<EventEntry> for SoonToBeIcsEvent {
-    type Error = String;
-
-    fn try_from(event: EventEntry) -> Result<Self, Self::Error> {
-        Ok(Self {
+impl From<EventEntry> for SoonToBeIcsEvent {
+    fn from(event: EventEntry) -> Self {
+        Self {
             start_time: event.start_time.naive_local(),
             end_time: event.end_time.naive_local(),
             name: event.name.clone(),
@@ -41,7 +39,7 @@ impl TryFrom<EventEntry> for SoonToBeIcsEvent {
             alert_minutes_before: None,
             description: event.description,
             location: event.location,
-        })
+        }
     }
 }
 
