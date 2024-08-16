@@ -1,6 +1,7 @@
 use std::fs;
 use std::path::Path;
 
+use anyhow::Context;
 use chrono::{DateTime, FixedOffset};
 use serde::Deserialize;
 
@@ -18,12 +19,12 @@ pub struct EventEntry {
 
 pub const FOLDER: &str = "eventfiles";
 
-pub fn read(name: &str) -> Result<Vec<EventEntry>, String> {
+pub fn read(name: &str) -> anyhow::Result<Vec<EventEntry>> {
     let filename = name.replace('/', "-");
     let path = Path::new(FOLDER).join(filename + ".json");
-    let content = fs::read_to_string(path).map_err(|err| format!("failed to read: {err}"))?;
+    let content = fs::read_to_string(path).context("failed to read")?;
     let event_entries: Vec<EventEntry> =
-        serde_json::from_str(&content).map_err(|err| format!("failed to parse: {err}"))?;
+        serde_json::from_str(&content).context("failed to parse")?;
 
     Ok(event_entries)
 }

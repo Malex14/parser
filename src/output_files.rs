@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::Path;
 
+use anyhow::Context;
+
 use crate::apply_changes::apply_changes;
 use crate::apply_details::apply_details;
 use crate::changestatus::{Changestatus, Changetype};
@@ -15,15 +17,18 @@ pub struct Buildresult {
 
 pub const FOLDER: &str = "calendars";
 
-pub fn ensure_directory() -> Result<(), std::io::Error> {
+pub fn ensure_directory() -> std::io::Result<()> {
     fs::create_dir_all(FOLDER)
 }
 
-pub fn one(content: UserconfigFile) -> Result<Changestatus, String> {
-    Ok(one_internal(content)?.changestatus)
+pub fn one(content: UserconfigFile) -> anyhow::Result<Changestatus> {
+    let user_id = content.chat.id;
+    one_internal(content)
+        .map(|buildresult| buildresult.changestatus)
+        .with_context(|| format!("Failed to build calendar for {user_id}"))
 }
 
-fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
+fn one_internal(content: UserconfigFile) -> anyhow::Result<Buildresult> {
     let user_id = content.chat.id;
     let first_name = content.chat.first_name;
     let ics_filename = format!("{user_id}-{}.ics", content.config.calendarfile_suffix);
@@ -32,16 +37,13 @@ fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
     let mut changetype = Changetype::Same;
 
     let existing = get_existing_files(&format!("{user_id}-"))
-        .map_err(|err| format!("failed to read existing calendars of user {err}"))?;
+        .context("failed to read existing calendars of user")?;
 
     match existing.len() {
         1 => {
             if existing[0] != ics_filename {
                 let existing_path = Path::new(FOLDER).join(&existing[0]);
-
-                fs::rename(existing_path, &path)
-                    .map_err(|err| format!("failed to rename calendars of user {err}"))?;
-
+                fs::rename(existing_path, &path).context("failed to rename old calendar")?;
                 changetype = Changetype::Moved;
             }
         }
@@ -49,9 +51,8 @@ fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
         _ => {
             for filename in existing {
                 let existing_path = Path::new(FOLDER).join(filename);
-                fs::remove_file(existing_path).map_err(|err| {
-                    format!("failed to remove superfluous calendars of user {user_id} {first_name} Error: {err}")
-                })?;
+                fs::remove_file(existing_path)
+                    .context("failed to remove superfluous calendars of user")?;
                 changetype = Changetype::Removed;
             }
         }
@@ -63,15 +64,13 @@ fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
     for name in event_keys {
         match load_and_parse_events(name) {
             Ok(mut events) => user_events.append(&mut events),
-            Err(err) => println!("skip event {name:32} {err}"),
+            Err(err) => println!("skip event {name:32} {err:#}"),
         }
     }
 
     if user_events.is_empty() {
         if path.exists() {
-            fs::remove_file(&path).map_err(|err| {
-                format!("failed to remove calendar with now 0 events {user_id} {first_name} Error: {err}")
-            })?;
+            fs::remove_file(&path).context("failed to remove calendar with now 0 events")?;
             changetype = Changetype::Removed;
         } else {
             changetype = Changetype::Skipped;
@@ -91,9 +90,7 @@ fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
         content.config.changes,
         content.config.removed_events,
     )
-    .map_err(|err| {
-        format!("failed to apply changes for user {user_id} {first_name} Error: {err}")
-    })?;
+    .context("failed to apply changes")?;
 
     for event in &mut user_events {
         if let Some(details) = content.config.events.get(&event.name) {
@@ -117,9 +114,7 @@ fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
     };
 
     if matches!(changetype, Changetype::Changed | Changetype::Added) {
-        fs::write(&path, &ics_content).map_err(|err| {
-            format!("failed to write ics file content for user {user_id} {first_name} Error: {err}")
-        })?;
+        fs::write(&path, &ics_content).context("failed to write ics file content")?;
     }
 
     Ok(Buildresult {
@@ -131,7 +126,7 @@ fn one_internal(content: UserconfigFile) -> Result<Buildresult, String> {
     })
 }
 
-fn load_and_parse_events(name: &str) -> Result<Vec<SoonToBeIcsEvent>, String> {
+fn load_and_parse_events(name: &str) -> anyhow::Result<Vec<SoonToBeIcsEvent>> {
     let mut result = Vec::new();
     for event in events::read(name)? {
         result.push(event.into());
@@ -139,7 +134,7 @@ fn load_and_parse_events(name: &str) -> Result<Vec<SoonToBeIcsEvent>, String> {
     Ok(result)
 }
 
-pub fn all_remove_rest(list: Vec<UserconfigFile>) -> Result<Vec<Changestatus>, String> {
+pub fn all_remove_rest(list: Vec<UserconfigFile>) -> anyhow::Result<Vec<Changestatus>> {
     let mut changestati: Vec<Changestatus> = Vec::new();
     let mut created_files: Vec<String> = Vec::new();
 
@@ -150,12 +145,11 @@ pub fn all_remove_rest(list: Vec<UserconfigFile>) -> Result<Vec<Changestatus>, S
                 changestati.push(filechange.changestatus);
                 created_files.push(filechange.filename);
             }
-            Err(error) => println!("build for {chat_id} failed. Error: {error}"),
+            Err(error) => println!("Failed to build calendar for {chat_id}: {error:#}"),
         }
     }
 
-    let existing = get_existing_files("")
-        .map_err(|err| format!("failed to read calendars dir for cleanup {err}"))?;
+    let existing = get_existing_files("").context("failed to read calendars dir for cleanup")?;
 
     for filename in existing {
         if created_files.contains(&filename) {
@@ -163,9 +157,8 @@ pub fn all_remove_rest(list: Vec<UserconfigFile>) -> Result<Vec<Changestatus>, S
         }
 
         let path = Path::new(FOLDER).join(&filename);
-        fs::remove_file(path).map_err(|err| {
-            format!("failed to remove superfluous calendar file {filename} Error: {err}")
-        })?;
+        fs::remove_file(path)
+            .with_context(|| format!("failed to remove superfluous calendar file {filename}"))?;
 
         changestati.push(Changestatus {
             name: filename,
@@ -176,7 +169,7 @@ pub fn all_remove_rest(list: Vec<UserconfigFile>) -> Result<Vec<Changestatus>, S
     Ok(changestati)
 }
 
-fn get_existing_files(starts_with: &str) -> Result<Vec<String>, std::io::Error> {
+fn get_existing_files(starts_with: &str) -> std::io::Result<Vec<String>> {
     let mut list: Vec<String> = Vec::new();
     for maybe_entry in fs::read_dir(FOLDER)? {
         let filename = maybe_entry?

@@ -1,16 +1,16 @@
 use std::fs;
 use std::path::Path;
 
+use anyhow::Context;
+
 use crate::userconfig::UserconfigFile;
 
 pub const FOLDER: &str = "userconfig";
 
-pub fn load_specific(filename: &str) -> Result<UserconfigFile, String> {
+pub fn load_specific(filename: &str) -> anyhow::Result<UserconfigFile> {
     let path = Path::new(FOLDER).join(filename);
-    let content = fs::read_to_string(path).map_err(|err| format!("failed to read: {err}"))?;
-    let parsed: UserconfigFile =
-        serde_json::from_str(&content).map_err(|err| format!("failed to parse: {err}"))?;
-
+    let content = fs::read_to_string(path).context("failed to read")?;
+    let parsed: UserconfigFile = serde_json::from_str(&content).context("failed to parse")?;
     Ok(parsed)
 }
 
@@ -22,14 +22,14 @@ pub fn load_all() -> Vec<UserconfigFile> {
     for filename in existing_files {
         match load_specific(&filename) {
             Ok(content) => successful.push(content),
-            Err(err) => println!("skip userconfig {filename:>16}: {err}"),
+            Err(err) => println!("skip userconfig {filename:>16}: {err:#}"),
         }
     }
 
     successful
 }
 
-fn get_existing_files() -> Result<Vec<String>, std::io::Error> {
+fn get_existing_files() -> std::io::Result<Vec<String>> {
     let mut list: Vec<String> = Vec::new();
     for maybe_entry in fs::read_dir(FOLDER)? {
         let filename = maybe_entry?

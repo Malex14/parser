@@ -7,11 +7,10 @@ pub fn apply_changes(
     events: &mut Vec<SoonToBeIcsEvent>,
     changes: Vec<Change>,
     removed_events: RemovedEvents,
-) -> Result<(), String> {
+) -> anyhow::Result<()> {
     for change in changes {
         apply_change(events, change, removed_events)?;
     }
-
     Ok(())
 }
 
@@ -20,11 +19,11 @@ fn apply_change(
     events: &mut Vec<SoonToBeIcsEvent>,
     change: Change,
     removed_events: RemovedEvents,
-) -> Result<(), String> {
+) -> anyhow::Result<()> {
     if change.add {
         let end_time = change
             .endtime
-            .ok_or("change add has no end_time specified")?;
+            .ok_or_else(|| anyhow::anyhow!("change add has no end_time specified"))?;
         let end_time = change.date.date().and_time(end_time);
 
         #[allow(clippy::option_if_let_else)]

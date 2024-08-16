@@ -40,7 +40,7 @@ fn main() {
                 Ok(changes) => {
                     _ = write_change_summary(&mut stdout, changes, Changetype::INTERESTING);
                 }
-                Err(err) => println!("failed to build all {err}"),
+                Err(err) => println!("failed to build all {err:#}"),
             }
         }
 
@@ -48,7 +48,7 @@ fn main() {
             println!("userconfig changed {filename:>16}... ");
             match do_specific(&filename) {
                 Ok(change) => println!("{:?} {}", change.changetype, change.name),
-                Err(err) => println!("{err}"),
+                Err(err) => println!("{err:#}"),
             }
         }
 
@@ -56,12 +56,12 @@ fn main() {
     }
 }
 
-fn do_all() -> Result<Vec<Changestatus>, String> {
+fn do_all() -> anyhow::Result<Vec<Changestatus>> {
     let all = userconfigs::load_all();
     output_files::all_remove_rest(all)
 }
 
-fn do_specific(userconfig_filename: &str) -> Result<Changestatus, String> {
+fn do_specific(userconfig_filename: &str) -> anyhow::Result<Changestatus> {
     let config = userconfigs::load_specific(userconfig_filename)?;
     output_files::one(config)
 }
