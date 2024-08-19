@@ -58,7 +58,7 @@ fn alert_examples() {
 fn check_description(notes: Option<&str>, event_description: &str, expected: &str) {
     let details = EventDetails {
         alert_minutes_before: None,
-        notes: notes.map(std::borrow::ToOwned::to_owned),
+        notes: notes.map(ToOwned::to_owned),
     };
     let mut event = create_event(event_description);
     apply_details(&mut event, &details);

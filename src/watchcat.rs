@@ -63,5 +63,5 @@ impl Watchcat {
 fn get_filename_as_string(path: &Path) -> Option<String> {
     path.file_name()
         .and_then(std::ffi::OsStr::to_str)
-        .map(std::borrow::ToOwned::to_owned)
+        .map(ToOwned::to_owned)
 }
