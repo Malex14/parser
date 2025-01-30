@@ -111,7 +111,7 @@ fn one_internal(content: UserconfigFile) -> anyhow::Result<Buildresult> {
         }
     } else {
         changetype = Changetype::Added;
-    };
+    }
 
     if matches!(changetype, Changetype::Changed | Changetype::Added) {
         fs::write(&path, &ics_content).context("failed to write ics file content")?;
