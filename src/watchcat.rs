@@ -1,9 +1,9 @@
 use std::path::{Path, PathBuf};
-use std::sync::mpsc::{channel, Receiver};
+use std::sync::mpsc::{Receiver, channel};
 use std::time::Duration;
 
 use notify_debouncer_full::notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
-use notify_debouncer_full::{new_debouncer, DebounceEventResult, Debouncer, FileIdMap};
+use notify_debouncer_full::{DebounceEventResult, Debouncer, FileIdMap, new_debouncer};
 
 pub struct Watchcat {
     rx: Receiver<PathBuf>,

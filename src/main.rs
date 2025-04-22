@@ -1,7 +1,7 @@
 use std::thread::sleep;
 use std::time::Duration;
 
-use crate::changestatus::{write_change_summary, Changestatus, Changetype};
+use crate::changestatus::{Changestatus, Changetype, write_change_summary};
 use crate::watchcat::Watchcat;
 
 mod apply_changes;

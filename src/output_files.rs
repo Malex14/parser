@@ -7,7 +7,7 @@ use crate::apply_changes::apply_changes;
 use crate::apply_details::apply_details;
 use crate::changestatus::{Changestatus, Changetype};
 use crate::events;
-use crate::generate_ics::{generate_ics, SoonToBeIcsEvent};
+use crate::generate_ics::{SoonToBeIcsEvent, generate_ics};
 use crate::userconfig::UserconfigFile;
 
 pub struct Buildresult {
