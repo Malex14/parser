@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use anyhow::Context;
+use anyhow::Context as _;
 use chrono::{DateTime, FixedOffset};
 use serde::Deserialize;
 

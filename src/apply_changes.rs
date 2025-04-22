@@ -1,4 +1,4 @@
-#![allow(clippy::non_ascii_literal)]
+#![expect(clippy::non_ascii_literal)]
 
 use crate::generate_ics::{EventStatus, SoonToBeIcsEvent};
 use crate::userconfig::{Change, RemovedEvents};
@@ -14,7 +14,7 @@ pub fn apply_changes(
     Ok(())
 }
 
-#[allow(clippy::suspicious_operation_groupings)]
+#[expect(clippy::suspicious_operation_groupings)]
 fn apply_change(
     events: &mut Vec<SoonToBeIcsEvent>,
     change: Change,
@@ -26,7 +26,6 @@ fn apply_change(
             .ok_or_else(|| anyhow::anyhow!("change add has no end_time specified"))?;
         let end_time = change.date.date().and_time(end_time);
 
-        #[allow(clippy::option_if_let_else)]
         events.push(SoonToBeIcsEvent {
             pretty_name: if let Some(namesuffix) = change.namesuffix {
                 format!("{} {namesuffix}", change.name)

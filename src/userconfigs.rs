@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use anyhow::Context;
+use anyhow::Context as _;
 
 use crate::userconfig::UserconfigFile;
 
@@ -37,7 +37,7 @@ fn get_existing_files() -> std::io::Result<Vec<String>> {
             .into_string()
             .expect("filename should be UTF8");
 
-        #[allow(clippy::case_sensitive_file_extension_comparisons)]
+        #[expect(clippy::case_sensitive_file_extension_comparisons)]
         if filename.ends_with(".json") {
             list.push(filename);
         }

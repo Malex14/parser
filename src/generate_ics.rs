@@ -1,6 +1,6 @@
 use std::collections::hash_map::DefaultHasher;
-use std::fmt::Write;
-use std::hash::{Hash, Hasher};
+use std::fmt::Write as _;
+use std::hash::{Hash, Hasher as _};
 
 use chrono::NaiveDateTime;
 

@@ -2,14 +2,14 @@ use std::path::{Path, PathBuf};
 use std::sync::mpsc::{channel, Receiver};
 use std::time::Duration;
 
-use notify_debouncer_full::notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher};
+use notify_debouncer_full::notify::{EventKind, RecommendedWatcher, RecursiveMode, Watcher as _};
 use notify_debouncer_full::{new_debouncer, DebounceEventResult, Debouncer, FileIdMap};
 
 pub struct Watchcat {
     rx: Receiver<PathBuf>,
 
     // TODO: can the lifetime of the watcher be bound to the resulting struct?
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     watcher: Debouncer<RecommendedWatcher, FileIdMap>,
 }
 

@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
-use chrono::{NaiveDateTime, NaiveTime, TimeZone};
+use chrono::{NaiveDateTime, NaiveTime, TimeZone as _};
 use chrono_tz::Europe::Berlin;
 use serde::Deserialize;
 
-#[allow(clippy::module_name_repetitions)]
 #[derive(Deserialize, Debug)]
 pub struct UserconfigFile {
     pub chat: Chat,

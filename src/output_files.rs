@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::Path;
 
-use anyhow::Context;
+use anyhow::Context as _;
 
 use crate::apply_changes::apply_changes;
 use crate::apply_details::apply_details;
