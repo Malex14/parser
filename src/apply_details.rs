@@ -4,14 +4,14 @@ use crate::userconfig::EventDetails;
 pub fn apply_details(event: &mut SoonToBeIcsEvent, details: &EventDetails) {
     event.alert_minutes_before = details.alert_minutes_before;
 
-    if let Some(notes) = &details.notes {
-        if !notes.is_empty() {
-            event.description = if event.description.is_empty() {
-                notes.clone()
-            } else {
-                format!("{}\n\n{notes}", event.description)
-            };
-        }
+    if let Some(notes) = &details.notes
+        && !notes.is_empty()
+    {
+        event.description = if event.description.is_empty() {
+            notes.clone()
+        } else {
+            format!("{}\n\n{notes}", event.description)
+        };
     }
 }
 
