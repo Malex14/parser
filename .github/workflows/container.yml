@@ -3,7 +3,7 @@ name: Build container
 on:
   push:
     branches:
-      - main
+      - m
     tags:
       - v*
   workflow_dispatch:
@@ -48,5 +48,5 @@ jobs:
         with:
           platforms: linux/amd64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ghcr.io/malex14/parser-m:edge
           labels: ${{ steps.meta.outputs.labels }}
