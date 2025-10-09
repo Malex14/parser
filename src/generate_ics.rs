@@ -25,7 +25,7 @@ pub struct SoonToBeIcsEvent {
 const ICS_PREFIX: &str = "BEGIN:VCALENDAR
 VERSION:2.0
 METHOD:PUBLISH
-PRODID:https://calendarbot.hawhh.de
+PRODID:https://calendarbot.mbehrmann.de
 ";
 
 const ICS_TIMEZONE: &str = "BEGIN:VTIMEZONE
@@ -53,7 +53,7 @@ pub fn generate_ics(calendarname: &str, events: &[SoonToBeIcsEvent]) -> String {
     let mut result = String::default();
 
     result += ICS_PREFIX;
-    _ = writeln!(result, "X-WR-CALNAME:@HAWHHCalendarBot ({calendarname})");
+    _ = writeln!(result, "X-WR-CALNAME:@HAWCalendarBot ({calendarname})");
     result += ICS_TIMEZONE;
 
     for event in events {
@@ -111,10 +111,10 @@ fn event_as_ics_vevent_string(output: &mut String, event: &SoonToBeIcsEvent) {
         );
     }
 
-    *output += "URL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\n";
+    *output += "URL;VALUE=URI:https://telegram.me/HAWCalendarBot\n";
     _ = writeln!(
         output,
-        "UID:{}@calendarbot.hawhh.de",
+        "UID:{}@calendarbot.mbehrmann.de",
         calculate_event_hash(event)
     );
 
@@ -202,7 +202,7 @@ fn create_minimal_event_vevent() {
     event_as_ics_vevent_string(&mut result, &event);
     assert_eq!(
         result,
-        "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWHHCalendarBot\nUID:dbbd48a01ce77b8c@calendarbot.hawhh.de\nEND:VEVENT\n"
+        "BEGIN:VEVENT\nTRANSP:OPAQUE\nSTATUS:CANCELLED\nSUMMARY:BTI5-VS\nDTSTART;TZID=Europe/Berlin:20200822T083000\nDTEND;TZID=Europe/Berlin:20200822T113000\nURL;VALUE=URI:https://telegram.me/HAWCalendarBot\nUID:dbbd48a01ce77b8c@calendarbot.mbehrmann.de\nEND:VEVENT\n"
     );
 }
 
