@@ -49,7 +49,7 @@ fn can_deserialize_event_entry() -> Result<(), serde_json::Error> {
     use chrono::NaiveDate;
 
     let test: EventEntry = serde_json::from_str(
-        r#"{"Id": "1", "Name": "BTI1-TI", "Location": "1060", "Description": "Dozent: HTM", "StartTime": "2022-01-13T11:40:00", "EndTime": "2022-01-13T12:00:00"}"#,
+        r#"{"Name": "BTI1-TI", "Location": "1060", "Description": "Dozent: HTM", "StartTime": "2022-01-13T11:40:00", "EndTime": "2022-01-13T12:00:00"}"#,
     )?;
 
     assert_eq!(test.name, "BTI1-TI");
